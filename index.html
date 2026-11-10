@@ -12,6 +12,45 @@
       background: radial-gradient(circle at top, #0f172a 0%, #020617 100%);
       color: #f8fafc;
       min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    @keyframes walkBob {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      25% { transform: translateY(-7px) rotate(-4deg); }
+      50% { transform: translateY(0px) rotate(0deg); }
+      75% { transform: translateY(-7px) rotate(4deg); }
+    }
+
+    @keyframes legLeftSwing {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(28deg); }
+      75% { transform: rotate(-28deg); }
+    }
+
+    @keyframes legRightSwing {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(-28deg); }
+      75% { transform: rotate(28deg); }
+    }
+
+    @keyframes armSwing {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(-22deg); }
+      75% { transform: rotate(22deg); }
+    }
+
+    .char-walking .char-body-wrap {
+      animation: walkBob 0.36s infinite ease-in-out;
+    }
+    .char-walking .leg-left {
+      animation: legLeftSwing 0.36s infinite ease-in-out;
+    }
+    .char-walking .leg-right {
+      animation: legRightSwing 0.36s infinite ease-in-out;
+    }
+    .char-walking .arm-swing {
+      animation: armSwing 0.36s infinite ease-in-out;
     }
 
     @keyframes floatSlow {
@@ -29,8 +68,14 @@
       100% { transform: translateY(0); opacity: 1; }
     }
 
+    @keyframes cloudDrift {
+      0% { transform: translateX(-18px); }
+      50% { transform: translateX(22px); }
+      100% { transform: translateX(-18px); }
+    }
+
     .animate-float {
-      animation: floatSlow 3.2s ease-in-out infinite;
+      animation: floatSlow 2.2s ease-in-out infinite;
     }
 
     .quest-glow {
@@ -41,7 +86,24 @@
       animation: elevatorMove 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    /* Custom Scrollbar */
+    .cloud-anim {
+      animation: cloudDrift 8s ease-in-out infinite;
+    }
+
+    .elevator-door-left, .elevator-door-right {
+      transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .doors-open .elevator-door-left {
+      transform: translateX(-85%);
+    }
+    .doors-open .elevator-door-right {
+      transform: translateX(85%);
+    }
+
+    #towerElevatorCab {
+      transition: bottom 1.05s cubic-bezier(0.35, 0, 0.25, 1);
+    }
+
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -61,8 +123,8 @@
 <body class="selection:bg-sky-500 selection:text-white">
 
   <!-- TOP HEADER / HUD -->
-  <header id="hudBar" class="hidden sticky top-0 z-40 backdrop-blur-md bg-slate-900/90 border-b border-slate-800 shadow-lg">
-    <div class="max-w-7xl mx-auto px-4 py-3">
+  <header id="hudBar" class="hidden sticky top-0 z-40 backdrop-blur-md bg-slate-900/95 border-b border-slate-800 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 py-2.5">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <!-- Brand & Character Info -->
         <div class="flex items-center gap-3">
@@ -83,9 +145,9 @@
         </div>
 
         <!-- Stats: Stamina & Literacy Points -->
-        <div class="flex flex-wrap items-center gap-4">
+        <div class="flex flex-wrap items-center gap-3">
           <!-- Stamina Bar -->
-          <div class="bg-slate-800/90 border border-slate-700 rounded-xl px-3 py-1.5 min-w-[155px]">
+          <div class="bg-slate-800/90 border border-slate-700 rounded-xl px-3 py-1.5 min-w-[145px]">
             <div class="flex justify-between text-xs mb-1">
               <span class="text-slate-300 font-medium">⚡ Stamina</span>
               <span id="hudStaminaText" class="font-bold text-emerald-400">100/100</span>
@@ -104,8 +166,11 @@
             </div>
           </div>
 
-          <!-- Reset / Switch Character -->
+          <!-- Sound, Badges, Switch, Reset -->
           <div class="flex items-center gap-1.5">
+            <button onclick="toggleSound()" id="btnSoundToggle" class="px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sky-300 text-xs font-semibold transition" title="Suara Efek Animasi">
+              🔊
+            </button>
             <button onclick="openBadgesModal()" class="px-3 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs font-semibold transition flex items-center gap-1.5" title="Lihat Lencana & Gelar">
               🏅 <span class="hidden md:inline">Lencana</span>
             </button>
@@ -120,8 +185,7 @@
       </div>
 
       <!-- Inventory & Digital Apps Bar -->
-      <div class="mt-2.5 pt-2.5 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-xs">
-        <!-- Physical Inventory -->
+      <div class="mt-2 pt-2 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-xs">
         <div class="flex items-center gap-1.5 flex-wrap">
           <span class="text-slate-400 font-medium mr-1">🎒 Perlengkapan:</span>
           <span id="invLockerKey" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-500 border border-slate-700/70 flex items-center gap-1">
@@ -135,7 +199,6 @@
           </span>
         </div>
 
-        <!-- Digital Apps Ecosystem -->
         <div class="flex items-center gap-1.5 flex-wrap">
           <span class="text-slate-400 font-medium mr-1">📱 Aplikasi Digital:</span>
           <button onclick="launchDigitalApp('opac')" id="appBtn_opac" class="px-2.5 py-1 rounded-lg bg-sky-500/15 hover:bg-sky-500/30 text-sky-300 border border-sky-500/30 font-semibold transition">
@@ -162,13 +225,13 @@
   <section id="startScreen" class="max-w-6xl mx-auto px-4 py-10">
     <div class="text-center max-w-3xl mx-auto mb-10">
       <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sky-500/15 border border-sky-500/30 text-sky-300 text-xs font-semibold mb-4">
-        🏛️ Game Edukasi Literasi & Layanan Perpustakaan Nasional RI
+        🏛️ Game 2D Interaktif Menara 24 Lantai Perpustakaan Nasional RI
       </div>
       <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
         EXPLORE: <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-teal-300 to-amber-300">Petualangan 24 Lantai Perpusnas</span>
       </h1>
       <p class="mt-4 text-slate-300 text-sm sm:text-base leading-relaxed">
-        Selamat datang di gedung perpustakaan tertinggi di dunia (126,3 meter) di Jl. Medan Merdeka Selatan No. 11, Jakarta! Pilih karakter Pemustaka, ikuti prosedur nyata layanan Perpusnas bersama <strong>Tanya Pustakawan</strong>, dan raih gelar kehormatan <strong>Duta Pemustaka Perpusnas</strong> di Lantai 24!
+        Gerakkan karaktermu berjalan menyusuri setiap lantai, naiki <strong>Lift Kaca</strong> mendaki menara 24 lantai Perpusnas (126,3 meter), cari buku di terminal <strong>OPAC</strong>, dan sapalah <strong>Tanya Pustakawan</strong> hingga mencapai Balkon Pandang Monas di Lantai 24!
       </p>
     </div>
 
@@ -178,12 +241,11 @@
     <!-- Quick Info Box -->
     <div class="mt-10 bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
       <div class="flex items-start gap-3.5">
-        <div class="text-3xl">💡</div>
+        <div class="text-3xl">🎮</div>
         <div class="text-xs sm:text-sm text-slate-300 space-y-1">
-          <p class="font-bold text-white">Aturan Emas Pemustaka Perpusnas:</p>
-          <p>1. Wajib menitipkan tas ransel di <strong>Loker Lantai 1</strong> dan memakai <strong>Tas Transparan</strong> sebelum naik ke lantai layanan koleksi.</p>
-          <p>2. Wajib membuat <strong>Kartu Anggota Perpusnas (Lantai 2)</strong> untuk mengakses komputer, meminjam buku, dan memakai <em>e-Resources</em>.</p>
-          <p>3. Gunakan <strong>OPAC / Indonesia OneSearch</strong> di lantai koleksi untuk menemukan nomor panggil buku sebelum menyelesaikan misi!</p>
+          <p class="font-bold text-white">Kontrol Animasi Karakter & Gedung 24 Lantai:</p>
+          <p>1. Gunakan tombol <strong>◀ Jalan Kiri / Jalan Kanan ▶</strong> (atau tombol panah keyboard <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700">←</kbd> <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700">→</kbd> / <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700">A</kbd> <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700">D</kbd>) maupun <strong>klik langsung objek di dalam ruangan</strong> agar karakter berjalan menghampirinya.</p>
+          <p>2. Klik lantai mana pun pada <strong>Menara Gedung 24 Lantai</strong> untuk melihat animasi karaktermu masuk ke lift dan menaiki gedung secara *real-time*!</p>
         </div>
       </div>
       <div id="savedProgressNotice" class="shrink-0 text-right hidden">
@@ -195,46 +257,88 @@
   </section>
 
   <!-- SCREEN 2: MAIN GAMEPLAY INTERFACE -->
-  <main id="gameScreen" class="hidden max-w-7xl mx-auto px-4 py-6">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <main id="gameScreen" class="hidden max-w-7xl mx-auto px-4 py-5">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
-      <!-- LEFT COLUMN: INTERACTIVE 24-FLOOR ELEVATOR PANEL (4 cols) -->
-      <aside class="lg:col-span-4 bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-xl">
+      <!-- LEFT COLUMN: ANIMATED 24-STORY BUILDING TOWER & ELEVATOR SHAFT (5 cols) -->
+      <aside class="lg:col-span-5 bg-slate-900/95 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-xl">
         <div>
-          <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center justify-between mb-2">
             <div>
-              <h2 class="font-bold text-white text-base flex items-center gap-2">
-                🛗 Panel Lift 24 Lantai
+              <h2 class="font-bold text-white text-sm sm:text-base flex items-center gap-2">
+                🏢 Menara 24 Lantai Perpusnas
               </h2>
-              <p class="text-xs text-slate-400">Klik nomor lantai untuk berpindah</p>
+              <p class="text-[11px] text-slate-400">Klik lantai pada gedung untuk naik/turun lift</p>
             </div>
-            <div class="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 font-mono text-xs text-amber-400 font-bold" id="elevatorDigitalDisplay">
-              FL-01
+            <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800">
+              <span id="elevatorDirectionArrow" class="text-[11px] font-bold text-emerald-400">▲</span>
+              <span class="font-mono text-xs text-amber-400 font-extrabold" id="elevatorDigitalDisplay">FL-01</span>
             </div>
           </div>
 
           <!-- Legend -->
-          <div class="grid grid-cols-2 gap-1.5 text-[11px] bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80 mb-3">
-            <div class="flex items-center gap-1.5 text-slate-300">
-              <span class="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block"></span> Main Quest Karakter
+          <div class="grid grid-cols-4 gap-1 text-[10px] bg-slate-950/70 p-2 rounded-xl border border-slate-800/80 mb-2.5 text-center">
+            <div class="flex items-center justify-center gap-1 text-slate-300">
+              <span class="w-2 h-2 rounded-full bg-sky-400 inline-block"></span> Utama
             </div>
-            <div class="flex items-center gap-1.5 text-slate-300">
-              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span> Selesai Dikunjungi
+            <div class="flex items-center justify-center gap-1 text-slate-300">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span> Selesai
             </div>
-            <div class="flex items-center gap-1.5 text-slate-300">
-              <span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> Posisi Saat Ini
+            <div class="flex items-center justify-center gap-1 text-slate-300">
+              <span class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span> Posisi
             </div>
-            <div class="flex items-center gap-1.5 text-slate-300">
-              <span class="w-2.5 h-2.5 rounded-full bg-rose-400 inline-block"></span> Zona Staf / Arsip
+            <div class="flex items-center justify-center gap-1 text-slate-300">
+              <span class="w-2 h-2 rounded-full bg-rose-400 inline-block"></span> Zona Staf
             </div>
           </div>
 
-          <!-- 24 Floor Buttons Grid (Top-to-Bottom like a real elevator panel) -->
-          <div id="elevatorButtonsGrid" class="grid grid-cols-4 gap-2"></div>
+          <!-- VISUAL SKYSCRAPER CUTAWAY WITH ANIMATED ELEVATOR SHAFT -->
+          <div class="relative rounded-2xl overflow-hidden border border-slate-700/80 bg-gradient-to-b from-indigo-950 via-slate-900 to-slate-950 shadow-inner">
+            <!-- Jakarta Sky Header & Monas Silhouette -->
+            <div class="relative h-12 bg-gradient-to-b from-sky-900/60 to-transparent flex items-end justify-between px-3 pb-1 border-b border-sky-500/20 overflow-hidden">
+              <div class="cloud-anim text-xs text-sky-200/70 select-none">☁️ &nbsp;&nbsp; ☁️</div>
+              <div class="text-center">
+                <div class="text-[10px] font-extrabold tracking-widest text-amber-300 uppercase">Menara Perpusnas RI (126,3m)</div>
+                <div class="text-[9px] text-sky-200/80">Puncak Balkon Monas Lt.24</div>
+              </div>
+              <div class="flex flex-col items-center select-none" title="Monumen Nasional (Monas)">
+                <span class="text-[10px] leading-none">🔥</span>
+                <div class="w-1.5 h-4 bg-amber-200/80 rounded-t"></div>
+                <div class="w-3.5 h-1 bg-amber-300/80"></div>
+              </div>
+            </div>
+
+            <!-- Building Body: Left = Elevator Shaft, Right = 24 Stacked Floors -->
+            <div class="relative flex px-2 py-2" style="height: 544px;">
+              <!-- Vertical Elevator Shaft (22px * 24 = 528px) -->
+              <div class="relative w-12 bg-slate-950/90 border-r border-l border-slate-700/80 rounded-l-lg mr-1.5 shrink-0 overflow-hidden" style="height: 528px;">
+                <div class="absolute inset-y-0 left-1/3 w-px bg-slate-800"></div>
+                <div class="absolute inset-y-0 right-1/3 w-px bg-slate-800"></div>
+
+                <!-- Animated Elevator Cab that physically climbs up & down the building -->
+                <div id="towerElevatorCab"
+                     style="bottom: 0px; height: 22px;"
+                     class="absolute left-1 right-1 rounded bg-gradient-to-r from-amber-400 to-sky-400 p-[1.5px] shadow-[0_0_12px_rgba(251,191,36,0.85)] z-20 flex items-center justify-center">
+                  <div class="w-full h-full bg-slate-950 rounded-[3px] flex items-center justify-center text-[11px] leading-none">
+                    <span id="cabMiniChar">🧒</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 24 Stacked Floor Cutaways (Top-to-Bottom) -->
+              <div id="elevatorButtonsGrid" class="flex-1 flex flex-col justify-between" style="height: 528px;"></div>
+            </div>
+
+            <!-- Street Level -->
+            <div class="h-6 bg-slate-950 border-t border-slate-800 px-3 flex items-center justify-between text-[10px] text-slate-400">
+              <span>🌳 Jl. Medan Merdeka Selatan No. 11</span>
+              <span>🚌 Halte Balai Kota / Perpusnas</span>
+            </div>
+          </div>
         </div>
 
         <!-- Character Main Quest Roadmap -->
-        <div class="mt-4 pt-3 border-t border-slate-800">
+        <div class="mt-3 pt-2.5 border-t border-slate-800">
           <div class="text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
             <span>🗺️ Jalur Kebutuhan Utama:</span>
             <span id="roadmapCharLabel" class="text-sky-400">Raka</span>
@@ -243,92 +347,196 @@
         </div>
       </aside>
 
-      <!-- RIGHT COLUMN: FLOOR VISUAL, NPC DIALOGUE & INTERACTIVE QUEST (8 cols) -->
-      <section class="lg:col-span-8 flex flex-col gap-5">
+      <!-- RIGHT COLUMN: 2D ANIMATED ROOM STAGE + NPC DIALOGUE & INTERACTIVE QUEST (7 cols) -->
+      <section class="lg:col-span-7 flex flex-col gap-4">
 
-        <!-- Floor Visual Banner & Status -->
-        <div id="floorCardContainer" class="floor-transition bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-          <!-- Floor Top Banner -->
-          <div id="floorBanner" class="p-6 bg-gradient-to-r from-sky-900/70 via-slate-900 to-indigo-950 border-b border-slate-800 relative">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div class="flex items-start gap-4">
-                <div id="floorIconBox" class="w-16 h-16 rounded-2xl bg-slate-950/70 border border-slate-700/80 flex items-center justify-center text-4xl shrink-0 animate-float shadow-inner">
+        <!-- 2D INTERACTIVE ROOM STAGE (KARAKTER BERJALAN DI DALAM LANTAI) -->
+        <div id="floorCardContainer" class="floor-transition bg-slate-900/95 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+          <!-- Stage Top Status Bar -->
+          <div id="floorBanner" class="px-4 py-2.5 bg-slate-950 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex flex-wrap items-center gap-2">
+              <span id="floorNumberBadge" class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-amber-400 text-slate-950">
+                LANTAI 1
+              </span>
+              <span id="floorZoneBadge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                Zona Publik
+              </span>
+              <span id="floorQuestTypeBadge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                🎯 Main Quest
+              </span>
+            </div>
+            <div id="floorCompletionBadge" class="px-3 py-1 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-xs font-bold">
+              ⏳ Belum Selesai
+            </div>
+          </div>
+
+          <!-- 2D Interactive Room Viewport -->
+          <div id="roomStageViewport"
+               onclick="handleStageClick(event)"
+               class="relative h-60 sm:h-64 w-full overflow-hidden select-none cursor-pointer bg-gradient-to-b from-slate-800 via-slate-900 to-slate-950 border-b border-slate-800">
+
+            <!-- Panoramic Window Backdrop (Changes with Floor Altitude!) -->
+            <div class="absolute inset-x-5 top-3 h-24 rounded-xl border border-slate-700/70 bg-gradient-to-b from-sky-950 via-indigo-950 to-slate-900 overflow-hidden opacity-95 flex items-center justify-between px-5">
+              <div class="flex items-center gap-3">
+                <div id="floorIconBox" class="w-12 h-12 rounded-xl bg-slate-950/80 border border-slate-700 flex items-center justify-center text-2xl shrink-0 animate-float">
                   🏛️
                 </div>
                 <div>
-                  <div class="flex flex-wrap items-center gap-2">
-                    <span id="floorNumberBadge" class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-amber-400 text-slate-950">
-                      LANTAI 1
-                    </span>
-                    <span id="floorZoneBadge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-500/20 text-sky-300 border border-sky-500/30">
-                      Zona Publik
-                    </span>
-                    <span id="floorQuestTypeBadge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                      🎯 Main Quest
-                    </span>
-                  </div>
-                  <h2 id="floorTitle" class="text-xl sm:text-2xl font-extrabold text-white mt-1.5">
+                  <div id="stageAltitudeLabel" class="text-[11px] font-bold text-sky-300">Ketinggian Gedung: ~5 Meter (Lantai 1/24)</div>
+                  <h2 id="floorTitle" class="text-sm sm:text-base font-extrabold text-white line-clamp-1">
                     Lobi Utama, Graha Literasi & Penitipan Tas
                   </h2>
-                  <p id="floorSubtitle" class="text-xs sm:text-sm text-slate-300 mt-1">
+                  <p id="floorSubtitle" class="text-[11px] text-slate-300 line-clamp-1">
                     Gerbang awal pelayanan Pemustaka dan instalasi Pohon Bintang Pengetahuan.
                   </p>
                 </div>
               </div>
+              <div id="stageWindowScenery" class="hidden sm:block text-3xl opacity-85 shrink-0">🌳🏛️🚌</div>
+            </div>
 
-              <!-- Completion Status Indicator -->
-              <div id="floorCompletionBadge" class="shrink-0 self-start sm:self-center px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-xs font-bold">
-                ⏳ Belum Selesai
+            <!-- STATION 1 (LEFT): PINTU LIFT LANTAI INI -->
+            <div onclick="event.stopPropagation(); walkCharacterTo(10, 'elevator')"
+                 style="left: 5%;"
+                 class="absolute bottom-12 flex flex-col items-center group cursor-pointer z-10">
+              <div class="mb-1 px-2 py-0.5 rounded bg-slate-950/90 border border-slate-700 text-[10px] font-bold text-slate-300 group-hover:border-amber-400 group-hover:text-amber-300 transition">
+                🛗 Pintu Lift
+              </div>
+              <div id="roomElevatorDoors" class="doors-open w-14 h-20 rounded-t-lg bg-slate-950 border-2 border-slate-600 relative overflow-hidden flex items-center justify-center shadow-lg">
+                <span class="text-base">🛗</span>
+                <div class="elevator-door-left absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-slate-600 to-slate-500 border-r border-slate-700"></div>
+                <div class="elevator-door-right absolute inset-y-0 right-0 w-1/2 bg-gradient-to-l from-slate-600 to-slate-500 border-l border-slate-700"></div>
+              </div>
+            </div>
+
+            <!-- STATION 2 (CENTER-LEFT): FASILITAS / LOKER / KIOS SAKTI / OPAC -->
+            <div onclick="event.stopPropagation(); walkCharacterTo(36, 'facility')"
+                 style="left: 32%;"
+                 class="absolute bottom-12 flex flex-col items-center group cursor-pointer z-10">
+              <div id="facilityMarkerBubble" class="animate-float mb-1 px-2.5 py-0.5 rounded-full bg-indigo-600/95 border border-indigo-300 text-[10px] font-bold text-white shadow">
+                🔒 Loker & Fasilitas
+              </div>
+              <div id="facilityIconVisual" class="w-14 h-16 rounded-xl bg-slate-800/95 border-2 border-indigo-400/70 group-hover:border-indigo-300 flex items-center justify-center text-2xl shadow-lg transition transform group-hover:scale-105">
+                🗄️
+              </div>
+            </div>
+
+            <!-- STATION 3 (CENTER-RIGHT): MEJA NPC TANYA PUSTAKAWAN -->
+            <div onclick="event.stopPropagation(); walkCharacterTo(61, 'npc')"
+                 style="left: 58%;"
+                 class="absolute bottom-12 flex flex-col items-center group cursor-pointer z-10">
+              <div class="animate-float mb-1 px-2.5 py-0.5 rounded-full bg-teal-600/95 border border-teal-300 text-[10px] font-bold text-white shadow">
+                👩‍💼 Tanya Pustakawan
+              </div>
+              <div class="w-14 h-16 rounded-xl bg-teal-950/90 border-2 border-teal-400/70 group-hover:border-teal-300 flex flex-col items-center justify-center shadow-lg transition transform group-hover:scale-105">
+                <span class="text-2xl">👩‍💼</span>
+                <span class="text-[9px] font-bold text-teal-300">Meja Info</span>
+              </div>
+            </div>
+
+            <!-- STATION 4 (RIGHT): POS MISI / KOLEKSI LANTAI -->
+            <div onclick="event.stopPropagation(); walkCharacterTo(84, 'quest')"
+                 style="left: 80%;"
+                 class="absolute bottom-12 flex flex-col items-center group cursor-pointer z-10">
+              <div id="questStationBubble" class="animate-float mb-1 px-2.5 py-0.5 rounded-full bg-amber-400 border border-amber-200 text-[10px] font-extrabold text-slate-950 shadow">
+                ⭐ Misi Lantai
+              </div>
+              <div id="questStationIcon" class="w-14 h-16 rounded-xl bg-amber-500/20 border-2 border-amber-400 group-hover:bg-amber-500/30 flex items-center justify-center text-2xl shadow-lg transition transform group-hover:scale-105">
+                📚
+              </div>
+            </div>
+
+            <!-- PLAYABLE 2D ANIMATED CHARACTER SPRITE -->
+            <div id="playerSpriteContainer"
+                 style="left: 16%; transition: left 0.3s linear;"
+                 class="absolute bottom-11 z-30 flex flex-col items-center pointer-events-none">
+              <div id="playerSpeechBubble" class="mb-1 px-2.5 py-0.5 rounded-full bg-sky-400 text-slate-950 font-extrabold text-[10px] whitespace-nowrap shadow-md">
+                Halo Perpusnas!
+              </div>
+              <div class="char-body-wrap relative flex flex-col items-center">
+                <div id="playerSpriteHead" class="text-3xl leading-none drop-shadow-[0_4px_6px_rgba(0,0,0,0.6)]">
+                  🧒
+                </div>
+                <div class="relative w-5 h-5 rounded-md bg-gradient-to-b from-sky-400 to-indigo-600 border border-white/40 flex items-center justify-center shadow">
+                  <span id="playerBagBadge" class="text-[9px] hidden">🛍️</span>
+                  <div class="arm-swing absolute -right-1.5 top-0.5 w-1.5 h-4 bg-sky-300 rounded-full origin-top"></div>
+                </div>
+                <div class="flex gap-1 -mt-0.5">
+                  <div class="leg-left w-1.5 h-3.5 bg-slate-200 rounded-b-full origin-top"></div>
+                  <div class="leg-right w-1.5 h-3.5 bg-slate-300 rounded-b-full origin-top"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Interactive Walk Controls Bar at Bottom of Room -->
+            <div class="absolute inset-x-0 bottom-0 h-11 bg-slate-950/95 border-t-2 border-slate-700 flex items-center justify-between px-3 text-xs">
+              <div class="flex items-center gap-1.5">
+                <button onclick="event.stopPropagation(); stepCharacter(-14)" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-sky-400 hover:text-slate-950 border border-slate-700 font-bold text-xs transition">
+                  ◀ Jalan Kiri
+                </button>
+                <button onclick="event.stopPropagation(); stepCharacter(14)" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-sky-400 hover:text-slate-950 border border-slate-700 font-bold text-xs transition">
+                  Jalan Kanan ▶
+                </button>
+              </div>
+              <span class="hidden md:inline text-[11px] text-slate-400">
+                Klik objek di ruangan atau tekan ◀ / ▶ untuk berjalan
+              </span>
+              <div class="flex items-center gap-1">
+                <button onclick="event.stopPropagation(); moveAdjacentFloor(-1)" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-amber-400 hover:text-slate-950 border border-slate-700 font-bold text-xs transition">
+                  ▼ Turun Lt
+                </button>
+                <button onclick="event.stopPropagation(); moveAdjacentFloor(1)" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-amber-400 hover:text-slate-950 border border-slate-700 font-bold text-xs transition">
+                  ▲ Naik Lt
+                </button>
               </div>
             </div>
           </div>
 
-          <!-- NPC Tanya Pustakawan Dialog Box -->
-          <div class="p-5 sm:p-6 space-y-5">
-            <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row gap-4 items-start">
+          <!-- NPC Tanya Pustakawan Dialog & Interactive Quest -->
+          <div class="p-4 sm:p-5 space-y-4">
+            <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row gap-3.5 items-start">
               <div class="flex items-center sm:flex-col gap-2 shrink-0">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-teal-400 to-sky-600 flex items-center justify-center text-2xl shadow">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-teal-400 to-sky-600 flex items-center justify-center text-2xl shadow">
                   👩‍💼
                 </div>
-                <span class="text-[11px] font-bold text-teal-300 bg-teal-500/10 px-2 py-0.5 rounded-md border border-teal-500/20">
+                <span class="text-[10px] font-bold text-teal-300 bg-teal-500/10 px-2 py-0.5 rounded-md border border-teal-500/20">
                   Tanya Pustakawan
                 </span>
               </div>
               <div class="space-y-2 flex-1">
-                <p id="npcGreeting" class="text-sm sm:text-base text-slate-200 leading-relaxed"></p>
+                <p id="npcGreeting" class="text-xs sm:text-sm text-slate-200 leading-relaxed"></p>
                 <div id="floorFacilitiesList" class="flex flex-wrap gap-1.5 pt-1"></div>
               </div>
             </div>
 
             <!-- Special OPAC Requirement Callout (Only on Collection Floors) -->
-            <div id="opacRequirementBox" class="hidden bg-indigo-950/60 border border-indigo-500/40 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div id="opacRequirementBox" class="hidden bg-indigo-950/60 border border-indigo-500/40 rounded-xl p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div class="flex items-start gap-3">
                 <span class="text-2xl">🔍</span>
-                <div class="text-xs sm:text-sm">
+                <div class="text-xs">
                   <div class="font-bold text-indigo-200">Prosedur Pencarian Koleksi (OPAC / Indonesia OneSearch)</div>
                   <p id="opacStatusText" class="text-indigo-300/90 mt-0.5">
-                    Lantai ini memiliki ribuan koleksi! Klik tombol <strong>Cari Nomor Panggil di OPAC</strong> terlebih dahulu sebelum menyelesaikan quest lantai ini.
+                    Gerakkan karaktermu ke <strong>Terminal OPAC</strong> di ruangan atas atau klik tombol di samping terlebih dahulu!
                   </p>
                 </div>
               </div>
-              <button onclick="performOpacSearchForCurrentFloor()" id="btnFloorOpac" class="shrink-0 px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs transition shadow">
-                🔍 Cari di OPAC / OneSearch
+              <button onclick="walkCharacterTo(36, 'facility')" id="btnFloorOpac" class="shrink-0 px-3.5 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs transition shadow">
+                🚶‍♂️ Jalan ke Terminal OPAC
               </button>
             </div>
 
             <!-- Interactive Quest & Action Panel -->
-            <div class="bg-slate-800/50 border border-slate-700/80 rounded-2xl p-5">
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-4 border-b border-slate-700/80">
+            <div id="questActionBox" class="bg-slate-800/50 border border-slate-700/80 rounded-2xl p-4">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 mb-3 border-b border-slate-700/80">
                 <div>
                   <span class="text-[11px] uppercase tracking-wider font-bold text-amber-400">Misi & Aktivitas Edukatif</span>
-                  <h3 id="questTitle" class="text-base sm:text-lg font-bold text-white"></h3>
+                  <h3 id="questTitle" class="text-sm sm:text-base font-bold text-white"></h3>
                 </div>
                 <span id="questRewardBadge" class="text-xs font-bold px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 self-start sm:self-center">
                   +50 Poin Literasi
                 </span>
               </div>
 
-              <p id="questDescription" class="text-xs sm:text-sm text-slate-300 leading-relaxed mb-4"></p>
+              <p id="questDescription" class="text-xs sm:text-sm text-slate-300 leading-relaxed mb-3"></p>
 
               <!-- Dynamic Interactive Container (Quiz / DDC Matching / Simulation) -->
               <div id="interactiveQuestArea" class="space-y-3"></div>
@@ -336,13 +544,13 @@
           </div>
         </div>
 
-        <!-- Activity Log / Toast Feedback -->
-        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4">
-          <div class="flex items-center justify-between mb-2">
+        <!-- Activity Log -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5">
+          <div class="flex items-center justify-between mb-1.5">
             <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">📜 Catatan Perjalanan Pemustaka</h4>
             <span class="text-[11px] text-slate-500">Real-time Log</span>
           </div>
-          <div id="activityLog" class="space-y-1.5 max-h-28 overflow-y-auto text-xs text-slate-300"></div>
+          <div id="activityLog" class="space-y-1.5 max-h-24 overflow-y-auto text-xs text-slate-300"></div>
         </div>
 
       </section>
@@ -1170,7 +1378,7 @@
     ];
 
     /********************************************************************
-     * 3. STATE MANAGEMENT & LOCALSTORAGE
+     * 3. STATE MANAGEMENT, SOUND SYNTHESIZER & 2D ANIMATION STATE
      ********************************************************************/
     const STORAGE_KEY = 'EXPLORE_PERPUSNAS_SAVE_V1';
 
@@ -1190,6 +1398,77 @@
       badges: [],
       logs: []
     };
+
+    let playerX = 16;
+    let isElevatorMoving = false;
+    let walkTimer = null;
+    let soundEnabled = true;
+    let audioCtx = null;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) audioCtx = new AudioContextClass();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playSound(type) {
+      if (!soundEnabled) return;
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+
+        if (type === 'step') {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(140, now);
+          osc.frequency.exponentialRampToValueAtTime(60, now + 0.05);
+          gain.gain.setValueAtTime(0.07, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.05);
+        } else if (type === 'ding') {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(784, now);
+          osc.frequency.setValueAtTime(1046.5, now + 0.13);
+          gain.gain.setValueAtTime(0.14, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.42);
+        } else if (type === 'success') {
+          [523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+            gain.gain.setValueAtTime(0.14, now + idx * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.24);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + idx * 0.08);
+            osc.stop(now + idx * 0.08 + 0.24);
+          });
+        }
+      } catch (e) {}
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      const btn = document.getElementById('btnSoundToggle');
+      if (btn) btn.textContent = soundEnabled ? '🔊' : '🔇';
+    }
 
     function loadGameState() {
       try {
@@ -1242,17 +1521,146 @@
     }
 
     /********************************************************************
-     * 4. INITIALIZATION & CHARACTER SELECTION UI
+     * 4. INITIALIZATION, KEYBOARD CONTROLS & CHARACTER SELECTION UI
      ********************************************************************/
     function initApp() {
       const hasSaved = loadGameState();
       renderCharacterCards();
+      setupKeyboardControls();
 
       if (hasSaved && gameState.characterId) {
         document.getElementById('savedProgressNotice').classList.remove('hidden');
         enterGameScreen();
       } else {
         showCharacterSelect();
+      }
+    }
+
+    function setupKeyboardControls() {
+      window.addEventListener('keydown', (e) => {
+        if (document.getElementById('gameScreen').classList.contains('hidden')) return;
+        if (!document.getElementById('appModal').classList.contains('hidden')) return;
+        if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+
+        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+          e.preventDefault();
+          stepCharacter(-10);
+        } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+          e.preventDefault();
+          stepCharacter(10);
+        } else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+          e.preventDefault();
+          moveAdjacentFloor(1);
+        } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+          e.preventDefault();
+          moveAdjacentFloor(-1);
+        }
+      });
+    }
+
+    function handleStageClick(event) {
+      const viewport = document.getElementById('roomStageViewport');
+      if (!viewport) return;
+      const rect = viewport.getBoundingClientRect();
+      const clickX = event.clientX - rect.left;
+      const targetPct = Math.max(8, Math.min(86, Math.round((clickX / rect.width) * 100)));
+      walkCharacterTo(targetPct, null);
+    }
+
+    function stepCharacter(deltaPct) {
+      const target = Math.max(8, Math.min(86, playerX + deltaPct));
+      walkCharacterTo(target, null);
+    }
+
+    function walkCharacterTo(targetPct, stationType) {
+      if (isElevatorMoving) return;
+
+      const sprite = document.getElementById('playerSpriteContainer');
+      const head = document.getElementById('playerSpriteHead');
+      const bubble = document.getElementById('playerSpeechBubble');
+      if (!sprite) return;
+
+      const distance = Math.abs(targetPct - playerX);
+      const goingLeft = targetPct < playerX;
+
+      if (head) {
+        head.style.transform = goingLeft ? 'scaleX(-1)' : 'scaleX(1)';
+      }
+
+      const durationMs = Math.max(180, Math.min(850, distance * 11));
+      sprite.style.transition = `left ${durationMs}ms linear`;
+      sprite.classList.add('char-walking');
+      playerX = targetPct;
+      sprite.style.left = `${playerX}%`;
+
+      playSound('step');
+
+      if (walkTimer) clearTimeout(walkTimer);
+      walkTimer = setTimeout(() => {
+        sprite.classList.remove('char-walking');
+        playSound('step');
+        onCharacterArrivedAtPosition(playerX, stationType, bubble);
+      }, durationMs);
+    }
+
+    function onCharacterArrivedAtPosition(xPct, explicitStation, bubble) {
+      const fl = getFloorData(gameState.currentFloor);
+      if (!bubble) return;
+
+      const station = explicitStation || (
+        xPct <= 15 ? 'elevator' :
+        (xPct >= 26 && xPct <= 45) ? 'facility' :
+        (xPct >= 52 && xPct <= 68) ? 'npc' :
+        (xPct >= 74) ? 'quest' : null
+      );
+
+      if (station === 'elevator') {
+        bubble.textContent = '🛗 Siap naik lift!';
+      } else if (station === 'facility') {
+        if (fl.requiresOpac) {
+          bubble.textContent = '🔍 Mencari nomor panggil di OPAC...';
+          performOpacSearchForCurrentFloor();
+        } else if (fl.staminaRestore) {
+          bubble.textContent = `⚡ Istirahat (+${fl.staminaRestore} Stamina)`;
+          restoreStaminaOnFloor(fl.staminaRestore, fl.name);
+        } else if (fl.floor === 1) {
+          bubble.textContent = '🔒 Menitipkan tas di Loker Lantai 1!';
+          document.getElementById('questActionBox')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else if (fl.floor === 2) {
+          bubble.textContent = '🪪 Kios Kartu Anggota SAKTI!';
+          document.getElementById('questActionBox')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else if (fl.floor === 24) {
+          bubble.textContent = '🗼 Pemandangan Monas dari Lt.24!';
+        } else {
+          bubble.textContent = `✨ ${fl.facilities[0] || 'Fasilitas Lantai'}`;
+        }
+      } else if (station === 'npc') {
+        bubble.textContent = '👩‍💼 Halo Kak Pustakawan!';
+      } else if (station === 'quest') {
+        bubble.textContent = '🎯 Ayo kerjakan misi lantai!';
+        document.getElementById('questActionBox')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } else {
+        bubble.textContent = `📍 Lantai ${fl.label}`;
+      }
+    }
+
+    function updateElevatorCabPosition(floorNum, animateClimb = true) {
+      const cab = document.getElementById('towerElevatorCab');
+      const char = getSelectedCharacter();
+      if (!cab) return;
+
+      const miniChar = document.getElementById('cabMiniChar');
+      if (miniChar) miniChar.textContent = char.avatar;
+
+      const targetBottomPx = (floorNum - 1) * 22;
+      cab.style.transition = animateClimb ? 'bottom 1.05s cubic-bezier(0.35, 0, 0.25, 1)' : 'none';
+      cab.style.bottom = `${targetBottomPx}px`;
+    }
+
+    function moveAdjacentFloor(delta) {
+      const nextFl = gameState.currentFloor + delta;
+      if (nextFl >= 1 && nextFl <= 24) {
+        moveToFloor(nextFl);
       }
     }
 
@@ -1316,6 +1724,7 @@
       document.getElementById('hudBar').classList.remove('hidden');
       document.getElementById('gameScreen').classList.remove('hidden');
       updateAllUI();
+      updateElevatorCabPosition(gameState.currentFloor, false);
     }
 
     function getSelectedCharacter() {
@@ -1327,7 +1736,7 @@
     }
 
     /********************************************************************
-     * 5. RENDER HUD, ELEVATOR PANEL & FLOOR SCENE
+     * 5. RENDER HUD, MENARA 24 LANTAI & RUANGAN 2D
      ********************************************************************/
     function updateAllUI() {
       checkAndUnlockBadges();
@@ -1347,11 +1756,17 @@
       document.getElementById('hudRoleBadge').textContent = char.role;
       document.getElementById('hudCurrentFloor').textContent = `Lantai ${floorObj.label}`;
 
-      // Main Quest Progress
+      const spriteHead = document.getElementById('playerSpriteHead');
+      if (spriteHead) spriteHead.textContent = char.avatar;
+      const bagBadge = document.getElementById('playerBagBadge');
+      if (bagBadge) {
+        if (gameState.inventory.clearBag) bagBadge.classList.remove('hidden');
+        else bagBadge.classList.add('hidden');
+      }
+
       const completedMainCount = char.mainFloors.filter(f => gameState.completedFloors.includes(f)).length;
       document.getElementById('hudMainProgress').textContent = `${completedMainCount}/${char.mainFloors.length} Lantai Utama`;
 
-      // Stamina
       const pct = Math.max(0, Math.min(100, Math.round((gameState.stamina / gameState.maxStamina) * 100)));
       document.getElementById('hudStaminaText').textContent = `${gameState.stamina}/${gameState.maxStamina}`;
       const bar = document.getElementById('hudStaminaBar');
@@ -1362,10 +1777,8 @@
                    'bg-gradient-to-r from-rose-600 to-red-400'
       }`;
 
-      // Score
       document.getElementById('hudScore').textContent = `${gameState.score} XP`;
 
-      // Inventory Items
       setInventoryBadgeState('invLockerKey', gameState.inventory.lockerKey);
       setInventoryBadgeState('invClearBag', gameState.inventory.clearBag);
       setInventoryBadgeState('invMemberCard', gameState.inventory.memberCard);
@@ -1389,7 +1802,6 @@
       document.getElementById('elevatorDigitalDisplay').textContent = `FL-${String(currentFlObj.label).padStart(2, '0')}`;
       document.getElementById('roadmapCharLabel').textContent = char.name;
 
-      // Render floors from 24 down to 1 (in rows of 4)
       const floorsDesc = [...FLOORS_DATA].sort((a, b) => b.floor - a.floor);
 
       grid.innerHTML = floorsDesc.map(fl => {
@@ -1398,13 +1810,13 @@
         const isMainQuest = char.mainFloors.includes(fl.floor);
         const isRestricted = !!fl.isRestrictedZone;
 
-        let btnStyle = 'bg-slate-800/90 hover:bg-slate-700 text-slate-200 border-slate-700';
+        let btnStyle = 'bg-slate-900/85 hover:bg-slate-800 text-slate-300 border-slate-800';
         if (isCurrent) {
-          btnStyle = 'bg-amber-400 text-slate-950 border-amber-300 font-extrabold ring-2 ring-amber-400/50';
+          btnStyle = 'bg-amber-400 text-slate-950 border-amber-300 font-extrabold shadow-[0_0_10px_rgba(251,191,36,0.5)]';
         } else if (isCompleted) {
-          btnStyle = 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border-emerald-500/40 font-bold';
+          btnStyle = 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 border-emerald-500/40 font-semibold';
         } else if (isMainQuest) {
-          btnStyle = 'bg-sky-500/20 hover:bg-sky-500/30 text-sky-200 border-sky-400/50 font-bold quest-glow';
+          btnStyle = 'bg-sky-500/20 hover:bg-sky-500/35 text-sky-200 border-sky-400/50 font-semibold';
         } else if (isRestricted) {
           btnStyle = 'bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border-rose-500/30';
         }
@@ -1412,15 +1824,20 @@
         return `
           <button
             onclick="moveToFloor(${fl.floor})"
-            title="Lantai ${fl.label}: ${fl.name}"
-            class="relative py-2.5 px-2 rounded-xl border text-xs transition flex flex-col items-center justify-center ${btnStyle}">
-            <span class="text-sm font-extrabold">${fl.label}</span>
-            <span class="text-[9px] truncate max-w-full opacity-85">${isCompleted ? '✓ Selesai' : isMainQuest ? '★ Utama' : isRestricted ? '⚡ Zona' : 'Eksplor'}</span>
+            style="height: 21px;"
+            title="Klik untuk naik lift ke Lantai ${fl.label}: ${fl.name}"
+            class="w-full px-2 rounded border text-[10px] transition flex items-center justify-between gap-1 ${btnStyle}">
+            <div class="flex items-center gap-1.5 truncate">
+              <span class="font-mono font-extrabold w-6 text-left">L${fl.label}</span>
+              <span class="truncate">${fl.icon} ${fl.name}</span>
+            </div>
+            <div class="shrink-0 flex items-center gap-1 text-[9px]">
+              ${isCurrent ? '<span>🚶‍♂️ Posisi</span>' : isCompleted ? '<span>✓</span>' : isMainQuest ? '<span>★Utama</span>' : ''}
+            </div>
           </button>
         `;
       }).join('');
 
-      // Render Roadmap Pills
       const roadmapEl = document.getElementById('questRoadmapPills');
       roadmapEl.innerHTML = char.mainFloors.map(fNum => {
         const fObj = getFloorData(fNum);
@@ -1439,15 +1856,15 @@
     }
 
     /********************************************************************
-     * 6. PROSEDUR LAYANAN PERPUSNAS (LOGIKA NAIK LIFT & AKSES LANTAI)
+     * 6. PROSEDUR LAYANAN PERPUSNAS & ANIMASI LIFT MENAIKI GEDUNG
      ********************************************************************/
     function moveToFloor(targetFloor) {
-      if (targetFloor === gameState.currentFloor) return;
+      if (isElevatorMoving || targetFloor === gameState.currentFloor) return;
 
       const targetData = getFloorData(targetFloor);
+      const startFloor = gameState.currentFloor;
 
       // SYARAT WAJIB LANTAI 1 (LOKER):
-      // Tidak bisa naik ke lantai > 1 sebelum menyelesaikan Quest Lantai 1 (Kunci Loker + Tas Transparan)
       if (targetData.requiresLocker && (!gameState.inventory.lockerKey || !gameState.inventory.clearBag)) {
         showModal(
           '🔒 Prosedur Wajib Loker Lantai 1',
@@ -1463,7 +1880,7 @@
         return;
       }
 
-      // Cek Stamina (kecuali menuju Lantai 4 Kantin atau Lantai 6 Masjid untuk pemulihan)
+      // Cek Stamina
       const cost = targetData.staminaCost || 0;
       if (cost > 0 && gameState.stamina < cost && targetFloor !== 4 && targetFloor !== 6) {
         showModal(
@@ -1475,21 +1892,68 @@
         return;
       }
 
-      // Kurangi atau Pulihkan Stamina saat berpindah lantai
-      if (cost > 0) {
-        gameState.stamina = Math.max(0, gameState.stamina - cost);
+      isElevatorMoving = true;
+      const goingUp = targetFloor > startFloor;
+      const arrowEl = document.getElementById('elevatorDirectionArrow');
+      if (arrowEl) {
+        arrowEl.textContent = goingUp ? '▲ NAIK' : '▼ TURUN';
+        arrowEl.className = `text-[11px] font-bold ${goingUp ? 'text-emerald-400' : 'text-amber-400'}`;
       }
 
-      gameState.currentFloor = targetFloor;
+      const bubble = document.getElementById('playerSpeechBubble');
+      if (bubble) bubble.textContent = `🛗 Menuju Lt.${targetData.label}...`;
 
-      // Trigger animasi transisi kartu lantai
-      const container = document.getElementById('floorCardContainer');
-      container.classList.remove('floor-transition');
-      void container.offsetWidth;
-      container.classList.add('floor-transition');
+      // 1. Karakter berjalan masuk ke pintu lift dan pintu lift tertutup
+      const sprite = document.getElementById('playerSpriteContainer');
+      const roomDoors = document.getElementById('roomElevatorDoors');
+      if (sprite) {
+        sprite.style.transition = 'left 0.25s linear';
+        sprite.classList.add('char-walking');
+        playerX = 8;
+        sprite.style.left = '8%';
+      }
+      if (roomDoors) roomDoors.classList.remove('doors-open');
 
-      addLog(`Menggunakan lift menuju Lantai ${targetData.label} (${targetData.name}).`);
-      updateAllUI();
+      // 2. Kabin lift bergerak naik/turun secara visual di menara gedung 24 lantai
+      updateElevatorCabPosition(targetFloor, true);
+
+      const totalFloorsDiff = Math.abs(targetFloor - startFloor);
+      const stepTime = Math.max(35, Math.floor(950 / Math.max(1, totalFloorsDiff)));
+      let tempFloor = startFloor;
+      const ticker = setInterval(() => {
+        if (tempFloor !== targetFloor) {
+          tempFloor += goingUp ? 1 : -1;
+          const flObj = getFloorData(tempFloor);
+          document.getElementById('elevatorDigitalDisplay').textContent = `FL-${String(flObj.label).padStart(2, '0')}`;
+          playSound('step');
+        }
+      }, stepTime);
+
+      // 3. Lift tiba di lantai tujuan
+      setTimeout(() => {
+        clearInterval(ticker);
+        if (sprite) sprite.classList.remove('char-walking');
+
+        if (cost > 0) {
+          gameState.stamina = Math.max(0, gameState.stamina - cost);
+        }
+
+        gameState.currentFloor = targetFloor;
+        playSound('ding');
+
+        if (arrowEl) arrowEl.textContent = '● TIBA';
+        if (roomDoors) roomDoors.classList.add('doors-open');
+
+        setTimeout(() => {
+          playerX = 18;
+          if (sprite) sprite.style.left = '18%';
+          if (bubble) bubble.textContent = `✨ Tiba di Lantai ${targetData.label}!`;
+          isElevatorMoving = false;
+        }, 180);
+
+        addLog(`Menaiki lift ${goingUp ? 'naik' : 'turun'} ke Lantai ${targetData.label} (${targetData.name}).`);
+        updateAllUI();
+      }, 1050);
     }
 
     /********************************************************************
@@ -1501,6 +1965,44 @@
       const isCompleted = gameState.completedFloors.includes(fl.floor);
       const isMainQuest = char.mainFloors.includes(fl.floor);
       const isOpacDone = gameState.opacSearchedFloors.includes(fl.floor);
+
+      const heightMeters = Math.round(fl.floor * 5.2);
+      const altEl = document.getElementById('stageAltitudeLabel');
+      if (altEl) altEl.textContent = `Ketinggian Gedung: ~${heightMeters} Meter (Lantai ${fl.label}/24)`;
+
+      const sceneryEl = document.getElementById('stageWindowScenery');
+      if (sceneryEl) {
+        sceneryEl.textContent = fl.floor === 24 ? '☁️🗼☁️' : fl.floor >= 15 ? '☁️🏙️🦅' : fl.floor >= 7 ? '🌤️🏢🌳' : '🌳🏛️🚌';
+      }
+
+      const facBubble = document.getElementById('facilityMarkerBubble');
+      const facIcon = document.getElementById('facilityIconVisual');
+      if (facBubble && facIcon) {
+        if (fl.requiresOpac) {
+          facBubble.textContent = isOpacDone ? '✅ OPAC Ditemukan' : `🔍 Terminal OPAC Lt.${fl.label}`;
+          facIcon.textContent = '💻';
+        } else if (fl.staminaRestore) {
+          facBubble.textContent = `⚡ Istirahat (+${fl.staminaRestore})`;
+          facIcon.textContent = fl.icon;
+        } else if (fl.floor === 1) {
+          facBubble.textContent = '🔒 Loker Penitipan Tas';
+          facIcon.textContent = '🗄️';
+        } else if (fl.floor === 2) {
+          facBubble.textContent = '🪪 Kios Kartu SAKTI';
+          facIcon.textContent = '🪪';
+        } else if (fl.floor === 24) {
+          facBubble.textContent = '🔭 Balkon Pandang Monas';
+          facIcon.textContent = '🗼';
+        } else {
+          facBubble.textContent = `✨ ${fl.facilities[0] || 'Fasilitas'}`;
+          facIcon.textContent = fl.icon;
+        }
+      }
+
+      const qIcon = document.getElementById('questStationIcon');
+      const qBubble = document.getElementById('questStationBubble');
+      if (qIcon) qIcon.textContent = fl.icon;
+      if (qBubble) qBubble.textContent = isCompleted ? '✅ Selesai' : `⭐ Misi Lt.${fl.label}`;
 
       document.getElementById('floorIconBox').textContent = fl.icon;
       document.getElementById('floorNumberBadge').textContent = `LANTAI ${fl.label}`;
@@ -1521,10 +2023,10 @@
       const compBadge = document.getElementById('floorCompletionBadge');
       if (isCompleted) {
         compBadge.textContent = '✅ Quest Lantai Selesai';
-        compBadge.className = 'shrink-0 self-start sm:self-center px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold';
+        compBadge.className = 'shrink-0 self-start sm:self-center px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold';
       } else {
         compBadge.textContent = '⏳ Belum Diselesaikan';
-        compBadge.className = 'shrink-0 self-start sm:self-center px-3 py-1.5 rounded-xl bg-amber-500/15 text-amber-300 border border-amber-500/30 text-xs font-bold';
+        compBadge.className = 'shrink-0 self-start sm:self-center px-3 py-1 rounded-xl bg-amber-500/15 text-amber-300 border border-amber-500/30 text-xs font-bold';
       }
 
       document.getElementById('npcGreeting').textContent = `"${fl.npcDialog}"`;
@@ -1535,7 +2037,6 @@
         </span>
       `).join('');
 
-      // OPAC Requirement Banner on Collection Floors (12, 12A/13, 14–19, 21, 22, 23)
       const opacBox = document.getElementById('opacRequirementBox');
       const opacStatusText = document.getElementById('opacStatusText');
       const btnFloorOpac = document.getElementById('btnFloorOpac');
@@ -1545,29 +2046,26 @@
         if (isOpacDone && fl.opacSampleBook) {
           opacStatusText.innerHTML = `✅ <strong>Nomor Panggil Ditemukan:</strong> <em>${fl.opacSampleBook.title}</em> — <code class="px-1.5 py-0.5 rounded bg-indigo-900 text-amber-300 font-mono">${fl.opacSampleBook.callNumber}</code>`;
           btnFloorOpac.textContent = '✅ OPAC Sudah Dicari';
-          btnFloorOpac.className = 'shrink-0 px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs transition';
+          btnFloorOpac.className = 'shrink-0 px-3.5 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs transition';
         } else {
-          opacStatusText.innerHTML = `Wajib klik tombol <strong>Cari di OPAC / OneSearch</strong> terlebih dahulu untuk menemukan Nomor Panggil koleksi sebelum menyelesaikan quest Lantai ${fl.label}.`;
-          btnFloorOpac.textContent = '🔍 Cari di OPAC / OneSearch';
-          btnFloorOpac.className = 'shrink-0 px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs transition shadow quest-glow';
+          opacStatusText.innerHTML = `Gerakkan karaktermu berjalan ke <strong>Terminal OPAC</strong> di ruangan atas (atau klik tombol ini) untuk menemukan Nomor Panggil koleksi sebelum menyelesaikan quest Lantai ${fl.label}.`;
+          btnFloorOpac.textContent = '🚶‍♂️ Jalan ke Terminal OPAC';
+          btnFloorOpac.className = 'shrink-0 px-3.5 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs transition shadow quest-glow';
         }
       } else {
         opacBox.classList.add('hidden');
       }
 
-      // Quest Details
       document.getElementById('questTitle').textContent = fl.questTitle;
       document.getElementById('questRewardBadge').textContent = `+${fl.rewardXP} Poin Literasi${fl.staminaRestore ? ` & +${fl.staminaRestore} Stamina` : ''}`;
       document.getElementById('questDescription').textContent = fl.questDesc;
 
-      // Render Interactive Quest Content
       renderInteractiveQuestContent(fl, isCompleted);
     }
 
     function renderInteractiveQuestContent(fl, isCompleted) {
       const container = document.getElementById('interactiveQuestArea');
 
-      // Check Membership Requirement first (Lantai 2)
       if (fl.requiresMember && !gameState.inventory.memberCard) {
         container.innerHTML = `
           <div class="p-4 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-200 text-xs sm:text-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -1706,11 +2204,13 @@
       const fl = getFloorData(floorNum);
       const feedbackBox = document.getElementById('quizFeedbackBox');
 
+      walkCharacterTo(84, null);
+
       // Cek syarat OPAC untuk lantai koleksi (12, 12A/13, 14-19, 21, 22, 23)
       if (fl.requiresOpac && !gameState.opacSearchedFloors.includes(fl.floor)) {
         feedbackBox.classList.remove('hidden');
         feedbackBox.className = 'mt-3 p-3 rounded-xl text-xs sm:text-sm bg-amber-500/20 border border-amber-500/40 text-amber-200';
-        feedbackBox.innerHTML = `🔍 <strong>Prosedur OPAC Belum Dilakukan!</strong> Klik tombol <strong>"Cari di OPAC / OneSearch"</strong> di kotak ungu di atas terlebih dahulu untuk mendapatkan Nomor Panggil buku sebelum menjawab kuis lantai ini.`;
+        feedbackBox.innerHTML = `🔍 <strong>Prosedur OPAC Belum Dilakukan!</strong> Gerakkan karaktermu ke <strong>Terminal OPAC</strong> di ruangan atas atau klik tombol <strong>"Jalan ke Terminal OPAC"</strong> terlebih dahulu untuk mendapatkan Nomor Panggil buku.`;
         return;
       }
 
@@ -1730,10 +2230,12 @@
       const fl = getFloorData(floorNum);
       const feedbackBox = document.getElementById('quizFeedbackBox');
 
+      walkCharacterTo(84, null);
+
       if (fl.requiresOpac && !gameState.opacSearchedFloors.includes(fl.floor)) {
         feedbackBox.classList.remove('hidden');
         feedbackBox.className = 'mt-3 p-3 rounded-xl text-xs sm:text-sm bg-amber-500/20 border border-amber-500/40 text-amber-200';
-        feedbackBox.innerHTML = `🔍 <strong>Prosedur OPAC Wajib!</strong> Klik tombol <strong>"Cari di OPAC / OneSearch"</strong> di atas terlebih dahulu untuk menemukan nomor panggil koleksi di Lantai ${fl.label}.`;
+        feedbackBox.innerHTML = `🔍 <strong>Prosedur OPAC Wajib!</strong> Gerakkan karaktermu ke <strong>Terminal OPAC</strong> terlebih dahulu untuk menemukan nomor panggil koleksi di Lantai ${fl.label}.`;
         return;
       }
 
@@ -1766,6 +2268,10 @@
 
     function completeFloorQuest(fl) {
       const alreadyDone = gameState.completedFloors.includes(fl.floor);
+      playSound('success');
+
+      const bubble = document.getElementById('playerSpeechBubble');
+      if (bubble) bubble.textContent = `🎉 Misi Lt.${fl.label} Tuntas! (+${fl.rewardXP} XP)`;
 
       // Grant Special Items on Floor 1 & Floor 2
       if (fl.floor === 1) {
