@@ -1,0 +1,2041 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EXPLORE: Petualangan 24 Lantai Perpusnas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: radial-gradient(circle at top, #0f172a 0%, #020617 100%);
+      color: #f8fafc;
+      min-height: 100vh;
+    }
+
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.55); }
+      50% { box-shadow: 0 0 0 8px rgba(56, 189, 248, 0); }
+    }
+
+    @keyframes elevatorMove {
+      0% { transform: translateY(8px); opacity: 0.4; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    .animate-float {
+      animation: floatSlow 3.2s ease-in-out infinite;
+    }
+
+    .quest-glow {
+      animation: pulseGlow 2s infinite;
+    }
+
+    .floor-transition {
+      animation: elevatorMove 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="selection:bg-sky-500 selection:text-white">
+
+  <!-- TOP HEADER / HUD -->
+  <header id="hudBar" class="hidden sticky top-0 z-40 backdrop-blur-md bg-slate-900/90 border-b border-slate-800 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 py-3">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <!-- Brand & Character Info -->
+        <div class="flex items-center gap-3">
+          <div id="hudAvatar" class="w-11 h-11 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-2xl shadow-md">
+            🧒
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span id="hudCharName" class="font-bold text-white text-sm sm:text-base">Raka (9 Thn)</span>
+              <span id="hudRoleBadge" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">Pemustaka Cilik</span>
+            </div>
+            <div class="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
+              <span>📍 Posisi: <strong id="hudCurrentFloor" class="text-amber-400">Lantai 1</strong></span>
+              <span>•</span>
+              <span>🎯 Progres Utama: <strong id="hudMainProgress" class="text-emerald-400">0/5</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats: Stamina & Literacy Points -->
+        <div class="flex flex-wrap items-center gap-4">
+          <!-- Stamina Bar -->
+          <div class="bg-slate-800/90 border border-slate-700 rounded-xl px-3 py-1.5 min-w-[155px]">
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300 font-medium">⚡ Stamina</span>
+              <span id="hudStaminaText" class="font-bold text-emerald-400">100/100</span>
+            </div>
+            <div class="w-full h-2 bg-slate-950 rounded-full overflow-hidden">
+              <div id="hudStaminaBar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-300" style="width: 100%"></div>
+            </div>
+          </div>
+
+          <!-- Poin Literasi -->
+          <div class="bg-slate-800/90 border border-slate-700 rounded-xl px-3.5 py-1.5 flex items-center gap-2">
+            <span class="text-xl">🌟</span>
+            <div>
+              <div class="text-[10px] uppercase tracking-wider text-slate-400">Poin Literasi</div>
+              <div id="hudScore" class="font-extrabold text-amber-400 text-sm sm:text-base">0 XP</div>
+            </div>
+          </div>
+
+          <!-- Reset / Switch Character -->
+          <div class="flex items-center gap-1.5">
+            <button onclick="openBadgesModal()" class="px-3 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs font-semibold transition flex items-center gap-1.5" title="Lihat Lencana & Gelar">
+              🏅 <span class="hidden md:inline">Lencana</span>
+            </button>
+            <button onclick="showCharacterSelect()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold transition" title="Ganti Karakter">
+              🔄 Ganti
+            </button>
+            <button onclick="resetGameProgress()" class="px-2.5 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-xs font-semibold transition" title="Reset Progres">
+              🗑️
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inventory & Digital Apps Bar -->
+      <div class="mt-2.5 pt-2.5 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <!-- Physical Inventory -->
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <span class="text-slate-400 font-medium mr-1">🎒 Perlengkapan:</span>
+          <span id="invLockerKey" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-500 border border-slate-700/70 flex items-center gap-1">
+            🔑 Kunci Loker
+          </span>
+          <span id="invClearBag" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-500 border border-slate-700/70 flex items-center gap-1">
+            🛍️ Tas Transparan
+          </span>
+          <span id="invMemberCard" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-500 border border-slate-700/70 flex items-center gap-1">
+            🪪 Kartu Anggota SAKTI
+          </span>
+        </div>
+
+        <!-- Digital Apps Ecosystem -->
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <span class="text-slate-400 font-medium mr-1">📱 Aplikasi Digital:</span>
+          <button onclick="launchDigitalApp('opac')" id="appBtn_opac" class="px-2.5 py-1 rounded-lg bg-sky-500/15 hover:bg-sky-500/30 text-sky-300 border border-sky-500/30 font-semibold transition">
+            🔍 OPAC
+          </button>
+          <button onclick="launchDigitalApp('onesearch')" id="appBtn_onesearch" class="px-2.5 py-1 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/30 font-semibold transition">
+            🌐 OneSearch
+          </button>
+          <button onclick="launchDigitalApp('ipusnas')" id="appBtn_ipusnas" class="px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 font-semibold transition">
+            📲 iPusnas
+          </button>
+          <button onclick="launchDigitalApp('eresources')" id="appBtn_eresources" class="px-2.5 py-1 rounded-lg bg-purple-500/15 hover:bg-purple-500/30 text-purple-300 border border-purple-500/30 font-semibold transition">
+            🎓 e-Resources
+          </button>
+          <button onclick="launchDigitalApp('khastara')" id="appBtn_khastara" class="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 font-semibold transition">
+            📜 Khastara
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- SCREEN 1: CHARACTER SELECTION SCREEN -->
+  <section id="startScreen" class="max-w-6xl mx-auto px-4 py-10">
+    <div class="text-center max-w-3xl mx-auto mb-10">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sky-500/15 border border-sky-500/30 text-sky-300 text-xs font-semibold mb-4">
+        🏛️ Game Edukasi Literasi & Layanan Perpustakaan Nasional RI
+      </div>
+      <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
+        EXPLORE: <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-teal-300 to-amber-300">Petualangan 24 Lantai Perpusnas</span>
+      </h1>
+      <p class="mt-4 text-slate-300 text-sm sm:text-base leading-relaxed">
+        Selamat datang di gedung perpustakaan tertinggi di dunia (126,3 meter) di Jl. Medan Merdeka Selatan No. 11, Jakarta! Pilih karakter Pemustaka, ikuti prosedur nyata layanan Perpusnas bersama <strong>Tanya Pustakawan</strong>, dan raih gelar kehormatan <strong>Duta Pemustaka Perpusnas</strong> di Lantai 24!
+      </p>
+    </div>
+
+    <!-- Character Cards Grid -->
+    <div id="characterCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5"></div>
+
+    <!-- Quick Info Box -->
+    <div class="mt-10 bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-start gap-3.5">
+        <div class="text-3xl">💡</div>
+        <div class="text-xs sm:text-sm text-slate-300 space-y-1">
+          <p class="font-bold text-white">Aturan Emas Pemustaka Perpusnas:</p>
+          <p>1. Wajib menitipkan tas ransel di <strong>Loker Lantai 1</strong> dan memakai <strong>Tas Transparan</strong> sebelum naik ke lantai layanan koleksi.</p>
+          <p>2. Wajib membuat <strong>Kartu Anggota Perpusnas (Lantai 2)</strong> untuk mengakses komputer, meminjam buku, dan memakai <em>e-Resources</em>.</p>
+          <p>3. Gunakan <strong>OPAC / Indonesia OneSearch</strong> di lantai koleksi untuk menemukan nomor panggil buku sebelum menyelesaikan misi!</p>
+        </div>
+      </div>
+      <div id="savedProgressNotice" class="shrink-0 text-right hidden">
+        <span class="inline-block px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold">
+          ✅ Progres Otomatis Tersimpan di Browser
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREEN 2: MAIN GAMEPLAY INTERFACE -->
+  <main id="gameScreen" class="hidden max-w-7xl mx-auto px-4 py-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- LEFT COLUMN: INTERACTIVE 24-FLOOR ELEVATOR PANEL (4 cols) -->
+      <aside class="lg:col-span-4 bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between shadow-xl">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h2 class="font-bold text-white text-base flex items-center gap-2">
+                🛗 Panel Lift 24 Lantai
+              </h2>
+              <p class="text-xs text-slate-400">Klik nomor lantai untuk berpindah</p>
+            </div>
+            <div class="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 font-mono text-xs text-amber-400 font-bold" id="elevatorDigitalDisplay">
+              FL-01
+            </div>
+          </div>
+
+          <!-- Legend -->
+          <div class="grid grid-cols-2 gap-1.5 text-[11px] bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80 mb-3">
+            <div class="flex items-center gap-1.5 text-slate-300">
+              <span class="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block"></span> Main Quest Karakter
+            </div>
+            <div class="flex items-center gap-1.5 text-slate-300">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span> Selesai Dikunjungi
+            </div>
+            <div class="flex items-center gap-1.5 text-slate-300">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> Posisi Saat Ini
+            </div>
+            <div class="flex items-center gap-1.5 text-slate-300">
+              <span class="w-2.5 h-2.5 rounded-full bg-rose-400 inline-block"></span> Zona Staf / Arsip
+            </div>
+          </div>
+
+          <!-- 24 Floor Buttons Grid (Top-to-Bottom like a real elevator panel) -->
+          <div id="elevatorButtonsGrid" class="grid grid-cols-4 gap-2"></div>
+        </div>
+
+        <!-- Character Main Quest Roadmap -->
+        <div class="mt-4 pt-3 border-t border-slate-800">
+          <div class="text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
+            <span>🗺️ Jalur Kebutuhan Utama:</span>
+            <span id="roadmapCharLabel" class="text-sky-400">Raka</span>
+          </div>
+          <div id="questRoadmapPills" class="flex flex-wrap gap-1.5 text-[11px]"></div>
+        </div>
+      </aside>
+
+      <!-- RIGHT COLUMN: FLOOR VISUAL, NPC DIALOGUE & INTERACTIVE QUEST (8 cols) -->
+      <section class="lg:col-span-8 flex flex-col gap-5">
+
+        <!-- Floor Visual Banner & Status -->
+        <div id="floorCardContainer" class="floor-transition bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+          <!-- Floor Top Banner -->
+          <div id="floorBanner" class="p-6 bg-gradient-to-r from-sky-900/70 via-slate-900 to-indigo-950 border-b border-slate-800 relative">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div class="flex items-start gap-4">
+                <div id="floorIconBox" class="w-16 h-16 rounded-2xl bg-slate-950/70 border border-slate-700/80 flex items-center justify-center text-4xl shrink-0 animate-float shadow-inner">
+                  🏛️
+                </div>
+                <div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span id="floorNumberBadge" class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-amber-400 text-slate-950">
+                      LANTAI 1
+                    </span>
+                    <span id="floorZoneBadge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                      Zona Publik
+                    </span>
+                    <span id="floorQuestTypeBadge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                      🎯 Main Quest
+                    </span>
+                  </div>
+                  <h2 id="floorTitle" class="text-xl sm:text-2xl font-extrabold text-white mt-1.5">
+                    Lobi Utama, Graha Literasi & Penitipan Tas
+                  </h2>
+                  <p id="floorSubtitle" class="text-xs sm:text-sm text-slate-300 mt-1">
+                    Gerbang awal pelayanan Pemustaka dan instalasi Pohon Bintang Pengetahuan.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Completion Status Indicator -->
+              <div id="floorCompletionBadge" class="shrink-0 self-start sm:self-center px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 text-xs font-bold">
+                ⏳ Belum Selesai
+              </div>
+            </div>
+          </div>
+
+          <!-- NPC Tanya Pustakawan Dialog Box -->
+          <div class="p-5 sm:p-6 space-y-5">
+            <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row gap-4 items-start">
+              <div class="flex items-center sm:flex-col gap-2 shrink-0">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-teal-400 to-sky-600 flex items-center justify-center text-2xl shadow">
+                  👩‍💼
+                </div>
+                <span class="text-[11px] font-bold text-teal-300 bg-teal-500/10 px-2 py-0.5 rounded-md border border-teal-500/20">
+                  Tanya Pustakawan
+                </span>
+              </div>
+              <div class="space-y-2 flex-1">
+                <p id="npcGreeting" class="text-sm sm:text-base text-slate-200 leading-relaxed"></p>
+                <div id="floorFacilitiesList" class="flex flex-wrap gap-1.5 pt-1"></div>
+              </div>
+            </div>
+
+            <!-- Special OPAC Requirement Callout (Only on Collection Floors) -->
+            <div id="opacRequirementBox" class="hidden bg-indigo-950/60 border border-indigo-500/40 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div class="flex items-start gap-3">
+                <span class="text-2xl">🔍</span>
+                <div class="text-xs sm:text-sm">
+                  <div class="font-bold text-indigo-200">Prosedur Pencarian Koleksi (OPAC / Indonesia OneSearch)</div>
+                  <p id="opacStatusText" class="text-indigo-300/90 mt-0.5">
+                    Lantai ini memiliki ribuan koleksi! Klik tombol <strong>Cari Nomor Panggil di OPAC</strong> terlebih dahulu sebelum menyelesaikan quest lantai ini.
+                  </p>
+                </div>
+              </div>
+              <button onclick="performOpacSearchForCurrentFloor()" id="btnFloorOpac" class="shrink-0 px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs transition shadow">
+                🔍 Cari di OPAC / OneSearch
+              </button>
+            </div>
+
+            <!-- Interactive Quest & Action Panel -->
+            <div class="bg-slate-800/50 border border-slate-700/80 rounded-2xl p-5">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-4 border-b border-slate-700/80">
+                <div>
+                  <span class="text-[11px] uppercase tracking-wider font-bold text-amber-400">Misi & Aktivitas Edukatif</span>
+                  <h3 id="questTitle" class="text-base sm:text-lg font-bold text-white"></h3>
+                </div>
+                <span id="questRewardBadge" class="text-xs font-bold px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 self-start sm:self-center">
+                  +50 Poin Literasi
+                </span>
+              </div>
+
+              <p id="questDescription" class="text-xs sm:text-sm text-slate-300 leading-relaxed mb-4"></p>
+
+              <!-- Dynamic Interactive Container (Quiz / DDC Matching / Simulation) -->
+              <div id="interactiveQuestArea" class="space-y-3"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Activity Log / Toast Feedback -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">📜 Catatan Perjalanan Pemustaka</h4>
+            <span class="text-[11px] text-slate-500">Real-time Log</span>
+          </div>
+          <div id="activityLog" class="space-y-1.5 max-h-28 overflow-y-auto text-xs text-slate-300"></div>
+        </div>
+
+      </section>
+    </div>
+  </main>
+
+  <!-- MODAL: DIGITAL APPS & BADGES -->
+  <div id="appModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 id="modalTitle" class="text-lg font-extrabold text-white flex items-center gap-2"></h3>
+        <button onclick="closeModal()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold">✕</button>
+      </div>
+      <div id="modalBody" class="text-sm text-slate-300 space-y-3 max-h-[65vh] overflow-y-auto"></div>
+      <div class="pt-2 border-t border-slate-800 flex justify-end">
+        <button onclick="closeModal()" class="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs">
+          Tutup Jendela
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /********************************************************************
+     * 1. DATA KARAKTER PEMUSTAKA (4 JALUR KEBUTUHAN)
+     ********************************************************************/
+    const CHARACTERS = [
+      {
+        id: 'raka',
+        name: 'Raka',
+        age: '9 Tahun',
+        role: 'Anak-Anak (Pelajar SD)',
+        avatar: '🧒',
+        color: 'from-sky-500 to-cyan-500',
+        needs: 'Mencari buku cerita bergambar, bermain puzzle edukatif, dan membaca di ruang anak.',
+        mainFloors: [1, 2, 7, 4, 24],
+        floorRouteText: 'Lantai 1 → Lantai 2 → Lantai 7 → Lantai 4 → Lantai 24'
+      },
+      {
+        id: 'sinta',
+        name: 'Sinta',
+        age: '16 Tahun',
+        role: 'Remaja (Pelajar SMA)',
+        avatar: '👧',
+        color: 'from-pink-500 to-rose-500',
+        needs: 'Membuat Kartu Anggota, menonton film dokumenter sejarah, mencari novel & buku sains populer, serta melihat pameran budaya.',
+        mainFloors: [1, 2, 8, 21, 22, 24],
+        floorRouteText: 'Lantai 1 → Lantai 2 → Lantai 8 → Lantai 21 & 22 → Lantai 24'
+      },
+      {
+        id: 'bima',
+        name: 'Bima',
+        age: '22 Tahun',
+        role: 'Mahasiswa / Peneliti',
+        avatar: '🎓',
+        color: 'from-indigo-500 to-purple-600',
+        needs: 'Menyusun skripsi dengan mencari jurnal internasional (e-Resources), naskah kuno (Khastara), koleksi monograf tertutup, layanan peneliti, dan majalah terjilid.',
+        mainFloors: [1, 2, 3, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24],
+        floorRouteText: 'Lantai 1 → 2 → 3 → 9 → 11 & 12/12A → 14–19 → 21 & 22 → 23 → 24'
+      },
+      {
+        id: 'hendra',
+        name: 'Pak Hendra',
+        age: '65 Tahun',
+        role: 'Lansia (Pensiunan)',
+        avatar: '👴',
+        color: 'from-emerald-500 to-teal-600',
+        needs: 'Membaca koleksi kesehatan/hobi di ruang ramah lansia, bersantai di taman outdoor, beribadah di masjid, dan menikmati koleksi kearifan lokal Nusantara.',
+        mainFloors: [1, 2, 6, 7, 23, 24],
+        floorRouteText: 'Lantai 1 → Lantai 2 → Lantai 6 → Lantai 7 → Lantai 23 → Lantai 24'
+      }
+    ];
+
+    /********************************************************************
+     * 2. DATA LENGKAP 24 LANTAI PERPUSNAS RI
+     * Catatan: Lantai 13 pada gedung Perpusnas diberi penomoran "12A"
+     ********************************************************************/
+    const FLOORS_DATA = [
+      {
+        floor: 1,
+        label: '1',
+        name: 'Lobi Utama, Graha Literasi, Penitipan Tas/Loker & Area Pameran',
+        subtitle: 'Gerbang masuk utama Pemustaka & instalasi ikonik Pohon Bintang.',
+        icon: '🏛️',
+        zone: 'Zona Publik Wajib',
+        requiresLocker: false,
+        requiresMember: false,
+        requiresOpac: false,
+        staminaCost: 0,
+        facilities: ['Loker Penitipan Tas', 'Tas Transparan Gratis', 'Graha Literasi', 'Pohon Bintang', 'Area Pameran Lobi'],
+        npcDialog: 'Selamat datang di Perpustakaan Nasional RI! Sebelum naik ke lantai layanan koleksi, setiap Pemustaka WAJIB menitipkan tas ransel/jaket di Loker Lantai 1 dan memindahkan barang berharga (dompet, laptop, gawai) ke dalam Tas Transparan yang kami sediakan.',
+        questTitle: 'Titip Tas di Loker & Kunjungi Graha Literasi',
+        questDesc: 'Selesaikan prosedur penitipan barang untuk mendapatkan Kunci Loker dan Tas Transparan, lalu jawab pertanyaan seputar Graha Literasi.',
+        rewardXP: 50,
+        quiz: {
+          question: 'Barang apa saja yang BOLEH dibawa naik ke lantai layanan koleksi Perpusnas menggunakan Tas Transparan?',
+          options: [
+            'Laptop, buku catatan, alat tulis, dompet, dan ponsel (tanpa makanan/minuman)',
+            'Ransel besar, bekal nasi kotak, dan minuman kemasan kaleng',
+            'Koper pakaian dan jaket tebal',
+            'Semua tas pribadi boleh dibawa tanpa perlu dititipkan di loker'
+          ],
+          correctIndex: 0,
+          explanation: 'Benar! Demi keamanan dan kelestarian koleksi, pemustaka menggunakan Tas Transparan untuk membawa laptop, catatan, dan barang berharga, serta dilarang membawa makanan/minuman ke ruang koleksi.'
+        }
+      },
+      {
+        floor: 2,
+        label: '2',
+        name: 'Layanan Keanggotaan, Layanan Informasi, Auditorium & Smart Locker',
+        subtitle: 'Pusat registrasi Kartu Anggota SAKTI dan peminjaman mandiri.',
+        icon: '🪪',
+        zone: 'Layanan Publik Utama',
+        requiresLocker: true,
+        requiresMember: false,
+        requiresOpac: false,
+        staminaCost: 5,
+        facilities: ['Kios Registrasi SAKTI', 'Cetak Kartu Anggota', 'Meja Layanan Informasi', 'Smart Locker', 'Ruang Auditorium'],
+        npcDialog: 'Halo Sahabat Perpusnas! Di Lantai 2 ini kamu bisa membuat Kartu Anggota Perpusnas secara gratis menggunakan NIK KTP/KIA/Kartu Pelajar melalui anjungan SAKTI. Kami juga punya fasilitas Smart Locker untuk mengambil atau mengembalikan buku pesanan!',
+        questTitle: 'Registrasi Kartu Anggota Perpusnas & Simulasi Smart Locker',
+        questDesc: 'Daftar Kartu Anggota agar kamu dapat meminjam buku, memakai komputer multimedia, dan mengakses e-Resources Perpusnas.',
+        rewardXP: 60,
+        quiz: {
+          question: 'Apa fungsi utama dari Kartu Anggota Perpusnas yang dibuat di Lantai 2 atau melalui situs keanggotaan.perpusnas.go.id?',
+          options: [
+            'Hanya sebagai suvenir kunjungan wisata',
+            'Akses layanan koleksi, peminjaman buku, komputer multimedia, serta login e-Resources & iPusnas',
+            'Kartu diskon belanja di kantin lantai 4',
+            'Tiket masuk parkir kendaraan pribadi'
+          ],
+          correctIndex: 1,
+          explanation: 'Tepat sekali! Kartu Anggota Perpusnas terintegrasi dengan layanan luring dan daring, termasuk akses jurnal internasional di e-Resources.'
+        }
+      },
+      {
+        floor: 3,
+        label: '3',
+        name: 'Fasilitas Multimedia Peneliti & Copy Center',
+        subtitle: 'Ruang kerja khusus peneliti dan layanan reproduksi/fotokopi sesuai Undang-Undang Hak Cipta.',
+        icon: '🖨️',
+        zone: 'Layanan Peneliti & Reproduksi',
+        requiresLocker: true,
+        requiresMember: true,
+        requiresOpac: false,
+        staminaCost: 5,
+        facilities: ['Ruang Multimedia Peneliti', 'Layanan Copy Center Resmi', 'Loker Peneliti'],
+        npcDialog: 'Selamat datang di Lantai 3! Bagi mahasiswa dan peneliti yang membutuhkan salinan halaman tertentu dari koleksi referensi, tersedia Copy Center resmi. Ingat ya, kita wajib mematuhi aturan UU Hak Cipta!',
+        questTitle: 'Pahami Etika Hak Cipta di Copy Center & Ruang Peneliti',
+        questDesc: 'Pelajari ketentuan reproduksi/fotokopi koleksi perpustakaan agar penelitianmu tetap menghormati hak kekayaan intelektual.',
+        rewardXP: 50,
+        quiz: {
+          question: 'Bagaimana aturan memfotokopi koleksi buku di Copy Center Perpusnas sesuai ketentuan Hak Cipta?',
+          options: [
+            'Boleh memfotokopi seluruh isi buku dari halaman pertama sampai terakhir untuk dijual kembali',
+            'Hanya diperbolehkan memfotokopi sebagian halaman tertentu (maksimal persentase terbatas) untuk kepentingan pendidikan/penelitian',
+            'Semua naskah kuno rapuh boleh difotokopi di mesin biasa',
+            'Bebas menggandakan buku tanpa batas'
+          ],
+          correctIndex: 1,
+          explanation: 'Betul! Sesuai UU Hak Cipta, penggandaan terbatas hanya diizinkan pada bagian tertentu untuk keperluan riset/pendidikan dan bukan seluruh isi buku.'
+        }
+      },
+      {
+        floor: 4,
+        label: '4',
+        name: 'Ruang Serbaguna, Area Pameran & Kantin',
+        subtitle: 'Tempat beristirahat, mengisi energi di Kantin, dan menikmati pameran temporer.',
+        icon: '🍱',
+        zone: 'Zona Istirahat & Pameran',
+        requiresLocker: true,
+        requiresMember: false,
+        requiresOpac: false,
+        staminaCost: 0,
+        staminaRestore: 45,
+        facilities: ['Kantin Perpusnas', 'Area Pameran Karya', 'Ruang Serbaguna'],
+        npcDialog: 'Lapar atau lelah setelah menjelajah banyak lantai? Lantai 4 adalah tempat yang tepat! Makanan dan minuman hanya boleh dikonsumsi di area Kantin ini agar koleksi buku di lantai atas tetap bersih dan bebas hama.',
+        questTitle: 'Pulihkan Stamina di Kantin & Apresiasi Karya Pameran',
+        questDesc: 'Nikmati hidangan sehat di Kantin (+45 Stamina) sambil mengapresiasi pameran literasi dan seni di Lantai 4.',
+        rewardXP: 45,
+        quiz: {
+          question: 'Mengapa Pemustaka dilarang membawa makanan dan minuman ke ruang baca koleksi dan diarahkan makan di Kantin Lantai 4?',
+          options: [
+            'Agar buku dan naskah terhindar dari tumpahan cairan serta serangga/rayap perusak kertas',
+            'Karena meja di ruang baca terlalu kecil',
+            'Supaya pemustaka cepat pulang',
+            'Hanya aturan formalitas biasa'
+          ],
+          correctIndex: 0,
+          explanation: 'Sangat tepat! Remah makanan dan minuman dapat mengundang serangga serta jamur yang merusak koleksi berharga negara.'
+        }
+      },
+      {
+        floor: 5,
+        label: '5',
+        name: 'Perkantoran & Layanan Manajemen Perpusnas',
+        subtitle: 'Zona Staf: Pengelolaan ISBN, NPP, Akreditasi Perpustakaan & Sertifikasi Pustakawan.',
+        icon: '🏢',
+        zone: 'Zona Staf (Edukasi Manajemen)',
+        isRestrictedZone: true,
+        requiresLocker: true,
+        requiresMember: false,
+        requiresOpac: false,
+        staminaCost: 5,
+        facilities: ['Sekretariat Layanan ISBN', 'Nomor Pokok Perpustakaan (NPP)', 'Akreditasi Perpustakaan', 'Diklat & Sertifikasi Pustakawan'],
+        npcDialog: 'Lantai 5 adalah Zona Perkantoran Staf, namun kamu bisa belajar banyak di sini! Perpusnas tidak hanya melayani pembaca, tetapi juga menerbitkan kode ISBN untuk seluruh buku di Indonesia, memberikan Nomor Pokok Perpustakaan (NPP), serta melakukan Akreditasi dan Diklat Pustakawan.',
+        questTitle: 'Mengenal Peran Pembinaan Nasional Perpusnas',
+        questDesc: 'Pelajari layanan strategis Perpusnas bagi penerbit buku, perpustakaan sekolah/daerah, dan profesi pustakawan di Indonesia.',
+        rewardXP: 55,
+        quiz: {
+          question: 'Kode unik internasional yang diterbitkan secara gratis oleh Perpusnas untuk setiap judul buku yang diterbitkan di Indonesia disebut...',
+          options: [
+            'ISBN (International Standard Book Number)',
+            'NPWP (Nomor Pokok Wajib Pajak)',
+            'SIM (Surat Izin Mengemudi)',
+            'Kode Pos Nasional'
+          ],
+          correctIndex: 0,
+          explanation: 'Benar! Perpusnas merupakan badan nasional resmi pemberi ISBN (International Standard Book Number) bagi penerbit di seluruh Indonesia.'
+        }
+      },
+      {
+        floor: 6,
+        label: '6',
+        name: 'Data Center & Masjid Perpusnas',
+        subtitle: 'Tempat ibadah yang tenang serta pusat infrastruktur server aplikasi digital.',
+        icon: '🕌',
+        zone: 'Fasilitas Ibadah & Infrastruktur TI',
+        requiresLocker: true,
+        requiresMember: false,
+        requiresOpac: false,
+        staminaCost: 0,
+        staminaRestore: 30,
+        facilities: ['Masjid / Ruang Ibadah', 'Data Center Perpusnas', 'Server iPusnas, Khastara, e-Resources & OneSearch'],
+        npcDialog: 'Di Lantai 6 ini terdapat Masjid yang bersih dan nyaman untuk beribadah serta menenangkan pikiran (+30 Stamina). Di lantai ini pula terdapat Data Center yang menjadi jantung server iPusnas, Khastara, e-Resources, dan Indonesia OneSearch!',
+        questTitle: 'Beribadah di Masjid & Mengenal Data Center Perpusnas',
+        questDesc: 'Segarkan rohani dan pelajari bagaimana Data Center menjaga akses jutaan koleksi digital selama 24 jam.',
+        rewardXP: 50,
+        quiz: {
+          question: 'Portal repositori tunggal yang dikelola di Data Center Perpusnas untuk mengintegrasikan katalog perpustakaan, museum, dan arsip di seluruh Indonesia adalah...',
+          options: [
+            'Indonesia OneSearch (IOS)',
+            'Game Center Nasional',
+            'Portal Belanja Daring',
+            'Media Sosial Umum'
+          ],
+          correctIndex: 0,
+          explanation: 'Betul! Indonesia OneSearch (onesearch.id) menghimpun jutaan cantuman bibliografi dari ribuan perpustakaan dan institusi di seluruh Indonesia.'
+        }
+      },
+      {
+        floor: 7,
+        label: '7',
+        name: 'Layanan Koleksi Anak, Lansia, & Disabilitas + Taman Outdoor',
+        subtitle: 'Ruang baca ramah inklusi, panggung boneka, koleksi Braille, dan taman hijau.',
+        icon: '🧸',
+        zone: 'Layanan Inklusif & Ramah Anak/Lansia',
+        requiresLocker: true,
+        requiresMember: false,
+        requiresOpac: false,
+        staminaCost: 5,
+        staminaRestore: 15,
+        facilities: ['Ruang Baca Anak & Puzzle Edukatif', 'Ruang Baca Lansia', 'Layanan Tunanetra (Braille & Audiobook)', 'Taman Outdoor Lantai 7'],
+        npcDialog: 'Selamat datang di Lantai 7 yang penuh warna! Di sini anak-anak bisa membaca buku cerita bergambar dan bermain puzzle edukatif, para Lansia bisa membaca koleksi kesehatan dengan nyaman, dan penyandang disabilitas netra dapat mengakses buku Braille serta komputer bicara (screen reader). Jangan lupa hirup udara segar di Taman Outdoor!',
+        questTitle: 'Eksplorasi Ruang Anak, Lansia, Disabilitas & Taman Outdoor',
+        questDesc: 'Temukan fasilitas literasi inklusif yang dirancang agar semua kalangan masyarakat dapat mengakses ilmu pengetahuan secara setara.',
+        rewardXP: 65,
+        quiz: {
+          question: 'Fasilitas khusus apa yang disediakan di Lantai 7 untuk mendukung sahabat pemustaka penyandang disabilitas netra?',
+          options: [
+            'Koleksi buku berhuruf Braille, buku audio (audiobook), dan perangkat pembaca layar (screen reader)',
+            'Hanya buku cetak biasa berukuran sangat kecil',
+            'Ruang konser musik rock',
+            'Laboratorium kimia'
+          ],
+          correctIndex: 0,
+          explanation: 'Hebat! Layanan Lantai 7 mewujudkan perpustakaan inklusif dengan koleksi Braille, audiobook, dan alat bantu aksesibilitas.'
+        }
+      },
+      {
+        floor: 8,
+        label: '8',
+        name: 'Layanan Koleksi Audiovisual & Pemutaran Film',
+        subtitle: 'Koleksi rekaman suara, musik, mikrofilm, dokumentasi video, dan ruang putar mini.',
+        icon: '🎬',
+        zone: 'Layanan Koleksi Non-Cetak',
+        requiresLocker: true,
+        requiresMember: true,
+        requiresOpac: false,
+        staminaCost: 5,
+        facilities: ['Ruang Putar Film Mini (Mini Theater)', 'Koleksi CD/DVD Edukatif', 'Alat Baca Mikrofilm & Mikrofis', 'Rekaman Suara Sejarah'],
+        npcDialog: 'Suka belajar lewat film dokumenter atau rekaman sejarah? Di Lantai 8 kamu bisa memesan ruang putar mini bersama teman-teman untuk menonton koleksi film edukatif, mendengarkan rekaman suara, hingga membaca surat kabar lama dalam bentuk mikrofilm!',
+        questTitle: 'Pesan Ruang Putar Mini & Kenali Koleksi Audiovisual',
+        questDesc: 'Gunakan Kartu Anggotamu untuk memesan ruang putar dan pelajari ragam koleksi rekam serta mikrofilm.',
+        rewardXP: 60,
+        quiz: {
+          question: 'Selain CD/DVD film dokumenter, media penyimpanan optik berupa gulungan film kecil berisi potret halaman surat kabar/dokumen lama di Lantai 8 disebut...',
+          options: [
+            'Mikrofilm / Mikrofis',
+            'Kaset Pita Radio biasa',
+            'Piringan Hitam Vinyl saja',
+            'Kertas Karbon'
+          ],
+          correctIndex: 0,
+          explanation: 'Benar! Mikrofilm dan mikrofis mampu menyimpan ribuan halaman surat kabar masa lampau secara awet hingga ratusan tahun.'
+        }
+      },
+      {
+        floor: 9,
+        label: '9',
+        name: 'Layanan Koleksi Naskah Nusantara (Manuskrip Kuno)',
+        subtitle: 'Warisan ingatan dunia: lontar, daluang, bambu, dan portal digital Khastara.',
+        icon: '📜',
+        zone: 'Koleksi Warisan Budaya & Dunia',
+        requiresLocker: true,
+        requiresMember: true,
+        requiresOpac: false,
+        staminaCost: 5,
+        facilities: ['Ruang Baca Naskah Kuno', 'Koleksi Lontar, Daluang & Kulit Kayu', 'Akses Digital Khastara', 'Koleksi Memory of the World UNESCO'],
+        npcDialog: 'Selamat datang di Lantai 9! Di sini tersimpan ribuan naskah kuno Nusantara (manuskrip) berbahan daun lontar, kulit kayu (할/bark), bambu, dan kertas daluang—seperti Nagarakretagama, Babad Diponegoro, dan La Galigo yang diakui UNESCO sebagai Memory of the World. Karena fisiknya sangat rapuh, kamu dapat membacanya secara digital lewat portal KHASTARA!',
+        questTitle: 'Pelestarian Naskah Kuno & Akses Aplikasi Khastara',
+        questDesc: 'Pelajari mengapa naskah kuno harus dijaga suhu dan kelembapannya serta cara mengakses versi digitalnya melalui Khastara.',
+        rewardXP: 75,
+        quiz: {
+          question: 'Apa nama aplikasi/portal digital resmi Perpusnas untuk mengakses koleksi digital naskah kuno Nusantara, buku langka, peta, dan lukisan?',
+          options: [
+            'Khastara (Khasanah Pustaka Nusantara)',
+            'e-Tilang Nasional',
+            'Kamus Besar Daring',
+            'Portal Musik Nusantara'
+          ],
+          correctIndex: 0,
+          explanation: 'Tepat! Khastara (khastara.perpusnas.go.id) memungkinkan siapa saja melihat hasil alih media naskah kuno Nusantara tanpa merusak naskah aslinya.'
+        }
+      },
+      {
+        floor: 10,
+        label: '10',
+        name: 'Penyimpanan Koleksi Deposit Nasional',
+        subtitle: 'Zona Arsip Negara: Pelaksanaan UU No. 13 Tahun 2018 tentang Serah Simpan Karya Cetak dan Karya Rekam.',
+        icon: '🏛️',
+        zone: 'Zona Arsip Negara (Tertutup)',
+        isRestrictedZone: true,
+        requiresLocker: true,
+        requiresMember: false,
+        requiresOpac: false,
+        staminaCost: 5,
+        facilities: ['Ruang Penyimpanan Deposit Nasional', 'Pengelolaan Bibliografi Nasional Indonesia (BNI)'],
+        npcDialog: 'Lantai 10 adalah Zona Arsip Negara tempat penyimpanan Koleksi Deposit! Tahukah kamu? Berdasarkan Undang-Undang Nomor 13 Tahun 2018 tentang Serah Simpan Karya Cetak dan Karya Rekam (SSKCKR), setiap penerbit dan produsen karya rekam di Indonesia WAJIB menyerahkan salinan karyanya ke Perpusnas untuk dilestarikan sebagai memori kolektif bangsa.',
+        questTitle: 'Edukasi UU Serah Simpan Karya Cetak dan Karya Rekam',
+        questDesc: 'Pahami pentingnya Undang-Undang Deposit agar tidak ada satupun karya intelektual anak bangsa yang hilang ditelan zaman.',
+        rewardXP: 60,
+        quiz: {
+          question: 'Berdasarkan UU No. 13 Tahun 2018 tentang Serah Simpan Karya Cetak dan Karya Rekam, mengapa setiap penerbit wajib menyerahkan karyanya ke Perpusnas?',
+          options: [
+            'Untuk dijual kembali oleh perpustakaan',
+            'Untuk melestarikan hasil budaya bangsa dan menyusun Bibliografi Nasional Indonesia',
+            'Sebagai pengganti pajak tahunan penerbit',
+            'Agar buku tersebut tidak boleh dibaca orang lain'
+          ],
+          correctIndex: 1,
+          explanation: 'Luar biasa! Koleksi Deposit disimpan abadi sebagai warisan intelektual negara dan didaftarkan dalam Bibliografi Nasional Indonesia.'
+        }
+      },
+      {
+        floor: 11,
+        label: '11',
+        name: 'Penyimpanan Koleksi Monograf Tertutup',
+        subtitle: 'Gudang rak penyimpanan buku koleksi tertutup yang dilayangkan ke ruang baca Lantai 12 & 12A.',
+        icon: '🗄️',
+        zone: 'Zona Penyimpanan Koleksi Tertutup',
+        isRestrictedZone: true,
+        requiresLocker: true,
+        requiresMember: true,
+        requiresOpac: false,
+        staminaCost: 5,
+        facilities: ['Rak Kompak (Compact Shelving)', 'Sistem Lift Buku (Dumbwaiter/Book Lift)', 'Pengendalian Suhu & Kelembapan'],
+        npcDialog: 'Lantai 11 merupakan area penyimpanan (stack room) Koleksi Monograf Tertutup. Pemustaka tidak mengambil sendiri buku di rak lantai ini, melainkan memesan nomor panggil buku melalui OPAC di Ruang Baca Lantai 12 atau 12A, lalu petugas akan mengambilkan bukunya dari Lantai 11!',
+        questTitle: 'Memahami Alur Layanan Koleksi Tertutup (Closed Access)',
+        questDesc: 'Pelajari perbedaan sistem layanan terbuka (open access) dan layanan tertutup (closed access) di perpustakaan riset.',
+        rewardXP: 55,
+        quiz: {
+          question: 'Bagaimana prosedur yang benar jika seorang peneliti ingin membaca buku yang tersimpan di Lantai 11 (Koleksi Monograf Tertutup)?',
+          options: [
+            'Masuk diam-diam ke gudang penyimpanan tanpa izin petugas',
+            'Mencari nomor panggil di OPAC dan memesannya melalui petugas di Ruang Baca Lantai 12 / 12A',
+            'Meminta satpam lobi lantai 1 untuk mengambilkannya',
+            'Membongkar rak penyimpanan sendiri'
+          ],
+          correctIndex: 1,
+          explanation: 'Benar! Sistem tertutup (closed access) menjaga keteraturan dan kelestarian koleksi khusus melalui pemesanan di Lantai 12/12A.'
+        }
+      },
+      {
+        floor: 12,
+        label: '12',
+        name: 'Ruang Baca Koleksi Monograf Tertutup',
+        subtitle: 'Layanan pemesanan dan ruang baca tenang untuk koleksi monograf tertutup.',
+        icon: '📖',
+        zone: 'Layanan Koleksi (Wajib OPAC)',
+        requiresLocker: true,
+        requiresMember: true,
+        requiresOpac: true,
+        opacSampleBook: {
+          title: 'Sejarah Perkembangan Pers dan Sastra Balai Pustaka di Hindia Belanda',
+          callNumber: '899.221 SEJ s (Koleksi Tertutup Lt. 12)',
+          location: 'Meja Layanan Ambil Koleksi Lantai 12'
+        },
+        staminaCost: 6,
+        facilities: ['Meja Pesan Buku Tertutup', 'Terminal OPAC', 'Meja Baca Individu (Carrel Desk)'],
+        npcDialog: 'Selamat datang di Ruang Baca Koleksi Monograf Tertutup Lantai 12! Di sini kamu dapat membaca buku-buku terbitan lama atau koleksi yang hanya tersedia dalam jumlah terbatas. Jangan lupa gunakan tombol OPAC terlebih dahulu untuk mencatat Nomor Panggil buku yang ingin kamu pesan kepada petugas!',
+        questTitle: 'Pesan Koleksi Monograf Tertutup via OPAC',
+        questDesc: 'Klik tombol OPAC untuk mendapatkan nomor panggil buku, lalu selesaikan kuis prosedur pemesanan koleksi tertutup.',
+        rewardXP: 65,
+        quiz: {
+          question: 'Informasi paling penting apa dari katalog OPAC yang wajib dicatat Pemustaka saat memesan buku di Lantai 12?',
+          options: [
+            'Warna sampul buku dan ketebalan kertas',
+            'Nomor Panggil (Call Number), Judul Buku, dan Nama Pengarang',
+            'Harga beli buku saat dicetak',
+            'Nama percetakan buku saja'
+          ],
+          correctIndex: 1,
+          explanation: 'Tepat! Nomor Panggil (Call Number) adalah alamat unik buku di rak penyimpanan sehingga petugas dapat menemukannya dengan cepat.'
+        }
+      },
+      {
+        floor: 13,
+        label: '12A',
+        name: 'Lantai 12A: Ruang Baca Lanjutan Monograf Tertutup & Disertasi',
+        subtitle: 'Ruang baca lanjutan koleksi tertutup, skripsi, tesis, dan disertasi penelitian.',
+        icon: '📑',
+        zone: 'Layanan Koleksi Riset (Wajib OPAC)',
+        requiresLocker: true,
+        requiresMember: true,
+        requiresOpac: true,
+        opacSampleBook: {
+          title: 'Disertasi: Transformasi Perpustakaan Digital dalam Meningkatkan Indeks Literasi Masyarakat',
+          callNumber: 'D 027.5 IND t (Koleksi Disertasi Lt. 12A)',
+          location: 'Ruang Baca Lantai 12A'
+        },
+        staminaCost: 6,
+        facilities: ['Ruang Baca Koleksi Tesis & Disertasi', 'Layanan Lanjutan Monograf Tertutup', 'Terminal Katalog OPAC'],
+        npcDialog: 'Perhatikan nomor tombol liftnya: setelah Lantai 12 adalah Lantai 12A! Di lantai ini, mahasiswa dan peneliti seperti Kak Bima dapat membaca koleksi karya ilmiah akademik berupa tesis, disertasi, dan laporan penelitian.',
+        questTitle: 'Menelusuri Literatur Akademik & Disertasi di Lantai 12A',
+        questDesc: 'Gunakan OPAC untuk menelusuri disertasi ilmiah, lalu jawab pertanyaan mengenai manfaat literatur kelabu (grey literature).',
+        rewardXP: 65,
+        quiz: {
+          question: 'Karya ilmiah seperti skripsi, tesis, disertasi, dan laporan penelitian yang tidak diterbitkan secara komersial di toko buku sering disebut sebagai...',
+          options: [
+            'Grey Literature (Literatur Kelabu)',
+            'Buku Komik Fiksi',
+            'Selebaran Iklan',
+            'Novel Populer'
+          ],
+          correctIndex: 0,
+          explanation: 'Betul sekali! Tesis, disertasi, dan laporan riset termasuk Grey Literature yang sangat bernilai tinggi bagi penelitian lanjutan.'
+        }
+      },
+      {
+        floor: 14,
+        label: '14',
+        name: 'Layanan Koleksi Buku Langka (Rare Books)',
+        subtitle: 'Koleksi buku-buku bersejarah terbitan abad ke-17 hingga awal abad ke-20.',
+        icon: '🕰️',
+        zone: 'Layanan Koleksi Khusus (Wajib OPAC)',
+        requiresLocker: true,
+        requiresMember: true,
+        requiresOpac: true,
+        opacSampleBook: {
+          title: 'Max Havelaar (Edisi Cetakan Klasik Abad ke-19) - Multatuli',
+          callNumber: 'RB 839.313 MUL m (Buku Langka Lt. 14)',
+          location: 'Ruang Baca Khusus Buku Langka Lantai 14'
+        },
+        staminaCost: 6,
+        facilities: ['Ruang Baca Buku Langka', 'Koleksi Terbitan Kolonial & Pra-Kemerdekaan', 'Akses Alih Media Digital'],
+        npcDialog: 'Selamat datang di Lantai 14, rumah bagi Koleksi Buku Langka (Rare Books)! Di sini tersimpan buku-buku tua bersejarah terbitan tahun 1600-an hingga 1945 yang sudah tidak dicetak lagi di dunia. Gunakan OPAC sebelum membaca ya!',
+        questTitle: 'Menjaga Kelestarian Koleksi Buku Langka',
+        questDesc: 'Cari nomor panggil Buku Langka di OPAC dan pelajari etika memperlakukan buku berusia ratusan tahun.',
+        rewardXP: 65,
+        quiz: {
+          question: 'Saat membaca koleksi Buku Langka yang kertasnya sudah rapuh di Lantai 14, sikap Pemustaka yang benar adalah...',
+          options: [
+            'Melipat ujung halaman buku sebagai pembatas dan mencoretnya dengan pulpen',
+            'Membuka halaman dengan sangat hati-hati sesuai petunjuk petugas dan tidak menekan punggung buku',
+            'Membawa buku langka pulang ke rumah tanpa izin',
+            'Menempelkan selotip plastik sembarangan pada halaman yang robek'
+          ],
+          correctIndex: 1,
+          explanation: 'Tepat! Kertas buku langka memiliki tingkat keasaman tinggi sehingga harus dibuka dengan ekstra hati-hati atau dibaca versi alih medianya.'
+        }
+      },
+      {
+        floor: 15,
+        label: '15',
+        name: 'Layanan Koleksi Rujukan (Referensi) & Ilmu Perpustakaan',
+        subtitle: 'Kamus, ensiklopedia, direktori, biografi, indeks, dan literatur kepustakawanan.',
+        icon: '📕',
+        zone: 'Layanan Referensi (Wajib OPAC)',
+        requiresLocker: true,
+        requiresMember: true,
+        requiresOpac: true,
+        opacSampleBook: {
+          title: 'Ensiklopedia Nasional Indonesia & Kamus Besar Bahasa Indonesia Edisi Rujukan',
+          callNumber: 'R 039.99221 ENS (Koleksi Referensi Lt. 15)',
+          location: 'Rak Referensi Lantai 15'
+        },
+        staminaCost: 5,
+        facilities: ['Koleksi Ensiklopedia & Kamus Multibahasa', 'Buku Tahunan (Yearbook) & Direktori', 'Koleksi Ilmu Perpustakaan & Informasi'],
+        npcDialog: 'Di Lantai 15 ini terdapat Layanan Koleksi Rujukan (Referensi) dengan kode panggil diawali huruf "R". Koleksi ini digunakan untuk mencari fakta cepat seperti definisi istilah, biografi tokoh, atau data statistik, sehingga hanya dibaca di tempat.',
+        questTitle: 'Temukan Fakta Cepat di Koleksi Rujukan (Kode R)',
+        questDesc: 'Gunakan OPAC untuk melacak ensiklopedia rujukan dan pahami karakteristik koleksi referensi.',
+        rewardXP: 60,
+        quiz: {
+          question: 'Mengapa buku-buku berkode "R" (Referensi/Rujukan) seperti Ensiklopedia dan Kamus Besar di Lantai 15 hanya boleh dibaca di tempat (tidak dipinjam pulang)?',
+          options: [
+            'Agar setiap saat selalu tersedia di perpustakaan ketika pemustaka lain membutuhkan rujukan fakta cepat',
+            'Karena sampul bukunya berwarna merah',
+            'Karena isinya rahasia negara',
+            'Karena bukunya belum selesai dicetak'
+          ],
+          correctIndex: 0,
+          explanation: 'Benar! Koleksi referensi dirancang untuk konsultasi informasi cepat oleh banyak orang setiap hari sehingga harus selalu siap di tempat.'
+        }
+      },
+      {
+        floor: 16,
+        label: '16',
+        name: 'Layanan Koleksi Foto, Peta, & Lukisan',
+        subtitle: 'Arsip visual Nusantara: peta kuno (kartografi), foto sejarah kemerdekaan, dan lukisan.',
+        icon: '🗺️',
+        zone: 'Koleksi Kartografi & Visual (Wajib OPAC)',
+        requiresLocker: true,
+        requiresMember: true,
+        requiresOpac: true,
+        opacSampleBook: {
+          title: 'Atlas van Nederlandsch Oost-Indië & Koleksi Foto Sejarah Kemerdekaan RI',
+          callNumber: 'KART 912.598 ATL (Koleksi Peta & Foto Lt. 16)',
+          location: 'Laci Peta & Ruang Baca Visual Lantai 16'
+        },
+        staminaCost: 5,
+        facilities: ['Laci Penyimpanan Peta (Horizontal Map Cabinet)', 'Koleksi Foto Sejarah Indonesia', 'Koleksi Lukisan & Gambar Cetak Kuno'],
+        npcDialog: 'Selamat datang di Lantai 16! Selain teks, sejarah bangsa juga terekam secara visual melalui ribuan peta kuno (kartografi), atlas, lukisan, dan foto-foto bersejarah sejak masa kolonial hingga awal kemerdekaan RI.',
+        questTitle: 'Menjelajah Sejarah Lewat Peta Kuno & Foto Dokumenter',
+        questDesc: 'Telusuri katalog peta/foto di OPAC dan pelajari ilmu kartografi di Lantai 16.',
+        rewardXP: 60,
+        quiz: {
+          question: 'Ilmu dan seni pembuatan peta yang koleksinya banyak dilayankan di Lantai 16 Perpusnas disebut...',
+          options: [
+            'Kartografi',
+            'Kaligrafi',
+            'Koreografi',
+            'Biografi'
+          ],
+          correctIndex: 0,
+          explanation: 'Tepat! Kartografi adalah ilmu pembuatan peta. Perpusnas menyimpan koleksi peta Nusantara dari berbagai abad.'
+        }
+      },
+      {
+        floor: 17,
+        label: '17',
+        name: 'Kantor Akademi Ilmu Pengetahuan Indonesia (AIPI) & Layanan Ilmiah',
+        subtitle: 'Pusat jejaring ilmuwan nasional dan diskusi kebijakan berbasis sains.',
+        icon: '🔬',
+        zone: 'Jejaring Sains & Kelembagaan Ilmiah',
+        requiresLocker: true,
+        requiresMember: true,
+        requiresOpac: true,
+        opacSampleBook: {
+          title: 'Sains Masa Depan Indonesia: Agenda Riset Nasional AIPI',
+          callNumber: '509.598 AIP s (Koleksi Ilmiah Lt. 17)',
+          location: 'Sudut Publikasi Ilmiah Lantai 17'
+        },
+        staminaCost: 5,
+        facilities: ['Sekretariat AIPI', 'Publikasi Kebijakan Sains', 'Ruang Diskusi Ilmiah'],
+        npcDialog: 'Di Lantai 17 dan 18 gedung Perpusnas terdapat kantor Akademi Ilmu Pengetahuan Indonesia (AIPI), lembaga mandiri tempat berkumpulnya para ilmuwan terkemuka Indonesia yang memberikan masukan ilmiah bagi kemajuan bangsa.',
+        questTitle: 'Mengenal Ekosistem Riset & Akademi Ilmu Pengetahuan',
+        questDesc: 'Gunakan OPAC untuk menelusuri publikasi sains nasional dan pelajari pentingnya budaya ilmiah.',
+        rewardXP: 55,
+        quiz: {
+          question: 'Mengapa kolaborasi antara Perpustakaan Nasional dan lembaga ilmuwan seperti AIPI sangat penting bagi kemajuan bangsa?',
+          options: [
+            'Karena riset ilmiah yang bermutu selalu membutuhkan dukungan literatur dan rujukan pengetahuan yang lengkap',
+            'Agar gedung terlihat penuh',
+            'Hanya untuk acara seremonial tahunan',
+            'Supaya mahasiswa tidak perlu menulis daftar pustaka'
+          ],
+          correctIndex: 0,
+          explanation: 'Benar! Perpustakaan merupakan jantung dari ekosistem riset dan inovasi ilmiah sebuah negara.'
+        }
+      },
+      {
+        floor: 18,
+        label: '18',
+        name: 'Kolaborasi Riset Ilmiah, Hukum & Terbitan Pemerintah/PBB',
+        subtitle: 'Koleksi peraturan perundang-undangan, lembaran negara, dan publikasi organisasi internasional.',
+        icon: '⚖️',
+        zone: 'Layanan Koleksi Hukum & Organisasi Internasional',
+        requiresLocker: true,
+        requiresMember: true,
+        requiresOpac: true,
+        opacSampleBook: {
+          title: 'Himpunan Lembaran Negara RI & Publikasi Resmi UNESCO / United Nations',
+          callNumber: '348.598 IND l (Koleksi Rujukan Hukum Lt. 18)',
+          location: 'Ruang Baca Lantai 18'
+        },
+        staminaCost: 5,
+        facilities: ['Koleksi Terbitan Pemerintah', 'Terbitan PBB (United Nations) & Badan Dunia', 'Literatur Hukum & Kebijakan Publik'],
+        npcDialog: 'Di Lantai 18 ini, peneliti dapat menelusuri dokumen resmi negara, lembaran negara, hingga terbitan organisasi internasional seperti PBB (United Nations), UNESCO, dan Bank Dunia.',
+        questTitle: 'Telusuri Dokumen Resmi Negara & Organisasi Dunia',
+        questDesc: 'Gunakan OPAC untuk mencari dokumen kebijakan publik dan pahami fungsi sumber hukum primer.',
+        rewardXP: 55,
+        quiz: {
+          question: 'Dokumen seperti Undang-Undang, Peraturan Pemerintah, dan Lembaran Negara dalam penelitian hukum dikategorikan sebagai...',
+          options: [
+            'Bahan Hukum Primer / Sumber Resmi Negara',
+            'Cerita Fiksi Sejarah',
+            'Opini Media Sosial',
+            'Katalog Promosi Dagang'
+          ],
+          correctIndex: 0,
+          explanation: 'Tepat sekali! Peraturan perundang-undangan dan dokumen resmi negara adalah bahan hukum primer yang otoritatif.'
+        }
+      },
+      {
+        floor: 19,
+        label: '19',
+        name: 'Layanan Multimedia & Akses Jurnal Internasional (e-Resources)',
+        subtitle: 'Komputer kerja berkecepatan tinggi dengan akses gratis ribuan jurnal ilmiah dunia.',
+        icon: '💻',
+        zone: 'Layanan Digital & e-Resources (Wajib OPAC)',
+        requiresLocker: true,
+        requiresMember: true,
+        requiresOpac: true,
+        opacSampleBook: {
+          title: 'Jurnal Internasional Terindeks: Artificial Intelligence in Modern Education (ScienceDirect / Springer)',
+          callNumber: 'E-RES 006.3 ART (Akses Portal e-Resources Lt. 19)',
+          location: 'Workstation Multimedia Lantai 19'
+        },
+        staminaCost: 6,
+        facilities: ['Puluhan Komputer Workstation Multimedia', 'Akses Portal e-Resources Perpusnas', 'Database Jurnal Internasional (ScienceDirect, ProQuest, EBSCO, Springer, dll.)'],
+        npcDialog: 'Selamat datang di Lantai 19, favorit para mahasiswa pejuang skripsi dan peneliti! Dengan nomor Kartu Anggota Perpusnas, kamu bisa mengakses e-resources.perpusnas.go.id secara GRATIS untuk mengunduh jurnal ilmiah internasional terkemuka!',
+        questTitle: 'Riset Jurnal Ilmiah Internasional melalui e-Resources',
+        questDesc: 'Cari referensi jurnal di OPAC/OneSearch, lalu uji pemahamanmu tentang layanan e-Resources Perpusnas.',
+        rewardXP: 75,
+        quiz: {
+          question: 'Bagaimana cara anggota Perpusnas mengakses ribuan jurnal ilmiah internasional berbayar secara GRATIS dan legal?',
+          options: [
+            'Login menggunakan Nomor Anggota Perpusnas di portal resmi e-resources.perpusnas.go.id',
+            'Mengunduh dari situs bajakan ilegal yang rawan virus',
+            'Membayar jutaan rupiah per artikel dari kantong sendiri',
+            'Meminta password milik orang asing'
+          ],
+          correctIndex: 0,
+          explanation: 'Sangat tepat! Perpusnas telah melanggan berbagai database jurnal internasional terbaik dunia agar dapat diakses gratis oleh seluruh anggota Perpusnas.'
+        }
+      },
+      {
+        floor: 20,
+        label: '20',
+        name: 'Layanan Koleksi Berkala Mutakhir & Mancanegara',
+        subtitle: 'Surat kabar harian terbaru, majalah edisi berjalan, dan pojok literasi negara sahabat.',
+        icon: '📰',
+        zone: 'Layanan Terbitan Berkala Mutakhir',
+        requiresLocker: true,
+        requiresMember: false,
+        requiresOpac: false,
+        staminaCost: 5,
+        facilities: ['Rak Surat Kabar Harian Terkini', 'Majalah & Tabloid Edisi Mutakhir', 'Koleksi Corner Mancanegara'],
+        npcDialog: 'Ingin mengikuti berita terkini dari koran dan majalah edisi terbaru? Lantai 20 menyediakan Layanan Koleksi Berkala Mutakhir (terbitan 1–2 tahun terakhir) serta koleksi dari berbagai negara sahabat!',
+        questTitle: 'Membaca Terbitan Berkala Mutakhir & Literasi Berita',
+        questDesc: 'Pelajari perbedaan antara terbitan berkala mutakhir di Lantai 20 dan majalah terjilid di Lantai 23.',
+        rewardXP: 55,
+        quiz: {
+          question: 'Apa yang dimaksud dengan "Koleksi Berkala (Serials) Mutakhir" yang dilayankan di Lantai 20?',
+          options: [
+            'Surat kabar, majalah, atau jurnal yang terbit secara terjadwal/berkala pada edisi-edisi terbaru',
+            'Buku cerita anak yang hanya terbit satu kali selamanya',
+            'Naskah daun lontar dari abad ke-14',
+            'Peta dinding ukuran besar'
+          ],
+          correctIndex: 0,
+          explanation: 'Benar! Terbitan berkala mutakhir mencakup surat kabar dan majalah edisi terbaru sebelum nantinya dijilid dan disimpan di Lantai 23.'
+        }
+      },
+      {
+        floor: 21,
+        label: '21',
+        name: 'Layanan Koleksi Monograf Terbuka (Klasifikasi DDC 000–499)',
+        subtitle: 'Rak terbuka untuk Karya Umum/Komputer (000), Filsafat/Psikologi (100), Agama (200), Ilmu Sosial (300) & Bahasa (400).',
+        icon: '📚',
+        zone: 'Koleksi Terbuka DDC 000–499 (Wajib OPAC)',
+        requiresLocker: true,
+        requiresMember: true,
+        requiresOpac: true,
+        opacSampleBook: {
+          title: 'Pengantar Psikologi Perkembangan Remaja & Tata Bahasa Indonesia',
+          callNumber: '155.5 PSI p & 499.221 TAT b (Rak Terbuka Lt. 21)',
+          location: 'Rak Monograf Terbuka Lantai 21 (Kelas 000–499)'
+        },
+        staminaCost: 7,
+        facilities: ['Rak Koleksi Terbuka Kelas 000–499', 'Meja Baca Luas & Sofa Literasi', 'Terminal Pencarian OPAC', 'Troli Buku (Book Trolley)'],
+        npcDialog: 'Selamat datang di Lantai 21! Di sini kamu bebas mengambil langsung buku dari rak terbuka untuk Klasifikasi Dewey (DDC) 000 sampai 499. Ayo gunakan OPAC terlebih dahulu, lalu bantu Pustakawan mencocokkan buku dengan nomor kelas DDC-nya!',
+        questTitle: 'Mini-Game DDC 000–499: Cocokkan Subjek Buku!',
+        questDesc: 'Pasangkan setiap subjek buku dengan kode Klasifikasi Desimal Dewey (000–499) yang tepat.',
+        rewardXP: 80,
+        ddcGame: {
+          classes: [
+            { code: '000', label: '000 - Karya Umum, Ilmu Komputer & Informasi' },
+            { code: '100', label: '100 - Filsafat & Psikologi' },
+            { code: '200', label: '200 - Agama' },
+            { code: '300', label: '300 - Ilmu-Ilmu Sosial (Ekonomi, Hukum, Pendidikan)' },
+            { code: '400', label: '400 - Bahasa & Linguistik' }
+          ],
+          items: [
+            { book: 'Buku "Pemrograman Python & Kecerdasan Buatan"', answer: '000' },
+            { book: 'Buku "Psikologi Kepribadian & Etika Filsafat"', answer: '100' },
+            { book: 'Buku "Sejarah Peradaban Islam & Studi Agama-Agama"', answer: '200' },
+            { book: 'Buku "Pengantar Ilmu Ekonomi Makro & Sosiologi"', answer: '300' },
+            { book: 'Buku "Kamus Tata Bahasa Inggris - Indonesia"', answer: '400' }
+          ]
+        }
+      },
+      {
+        floor: 22,
+        label: '22',
+        name: 'Layanan Koleksi Monograf Terbuka (Klasifikasi DDC 500–999)',
+        subtitle: 'Rak terbuka untuk Sains (500), Teknologi (600), Seni/Olahraga (700), Sastra (800) & Sejarah/Geografi (900).',
+        icon: '📘',
+        zone: 'Koleksi Terbuka DDC 500–999 (Wajib OPAC)',
+        requiresLocker: true,
+        requiresMember: true,
+        requiresOpac: true,
+        opacSampleBook: {
+          title: 'Novel Laskar Pelangi, Eksplorasi Sains Semesta & Sejarah Nasional Indonesia',
+          callNumber: '899.2213 HIR l & 520 AST s (Rak Terbuka Lt. 22)',
+          location: 'Rak Monograf Terbuka Lantai 22 (Kelas 500–999)'
+        },
+        staminaCost: 7,
+        facilities: ['Rak Koleksi Terbuka Kelas 500–999', 'Troli Pengembalian Buku', 'Area Baca Panorama Kota', 'Terminal OPAC'],
+        npcDialog: 'Lantai 22 menyimpan koleksi terbuka favorit untuk kelas DDC 500 hingga 999—mulai dari Sains, Kedokteran/Teknologi, Seni, Novel Sastra, hingga Sejarah! Ingat aturan penting Perpusnas: setelah selesai membaca buku dari rak terbuka, letakkan buku di TROLI BUKU (jangan dikembalikan sendiri ke rak agar susunan nomor panggil tidak salah letak/misshelving).',
+        questTitle: 'Mini-Game DDC 500–999 & Etika Troli Buku',
+        questDesc: 'Cocokkan buku kelas 500–999 dan konfirmasi etika meletakkan buku yang selesai dibaca di troli.',
+        rewardXP: 85,
+        ddcGame: {
+          classes: [
+            { code: '500', label: '500 - Ilmu Murni / Sains (Matematika, Fisika, Biologi)' },
+            { code: '600', label: '600 - Ilmu Terapan / Teknologi (Kedokteran, Pertanian, Teknik)' },
+            { code: '700', label: '700 - Kesenian, Arsitektur, Musik & Olahraga' },
+            { code: '800', label: '800 - Kesusastraan (Novel, Puisi, Drama)' },
+            { code: '900', label: '900 - Sejarah, Biografi & Geografi' }
+          ],
+          items: [
+            { book: 'Buku "Astronomi, Fisika Kuantum & Biologi Laut"', answer: '500' },
+            { book: 'Buku "Ilmu Gizi Kesehatan & Budi Daya Tanaman Pangan"', answer: '600' },
+            { book: 'Buku "Seni Batik Nusantara & Fotografi Kreatif"', answer: '700' },
+            { book: 'Buku "Antologi Puisi Chairil Anwar & Novel Bumi Manusia"', answer: '800' },
+            { book: 'Buku "Sejarah Perjuangan Kemerdekaan Republik Indonesia"', answer: '900' }
+          ],
+          trolleyQuestion: 'Setelah selesai membaca buku di Lantai 21 atau 22, di manakah Pemustaka harus meletakkan buku tersebut?',
+          trolleyCorrect: 'Di atas Troli Buku / Meja yang disediakan agar petugas yang mengembalikan ke rak sesuai kode DDC',
+          trolleyWrong: 'Memasukkan sendiri ke sela-sela rak mana saja yang kosong'
+        }
+      },
+      {
+        floor: 23,
+        label: '23',
+        name: 'Layanan Koleksi Majalah Terjilid (Surat Kabar & Majalah Lama)',
+        subtitle: 'Arsip fisik majalah dan surat kabar tahun-tahun lampau yang telah dijilid rapi.',
+        icon: '🗞️',
+        zone: 'Koleksi Berkala Terjilid (Wajib OPAC)',
+        requiresLocker: true,
+        requiresMember: true,
+        requiresOpac: true,
+        opacSampleBook: {
+          title: 'Bundel Majalah Tempo, Intisari & Surat Kabar Kompas Terjilid (Edisi Arsip Sejarah)',
+          callNumber: 'MAJ 059.99221 TEM (Koleksi Majalah Terjilid Lt. 23)',
+          location: 'Ruang Baca Majalah Terjilid Lantai 23'
+        },
+        staminaCost: 6,
+        facilities: ['Rak Bundel Majalah & Koran Terjilid', 'Meja Baca Besar untuk Bundel Koran', 'Terminal Katalog OPAC'],
+        npcDialog: 'Selamat datang di Lantai 23! Di sini tersimpan koleksi majalah dan surat kabar lama yang sudah dijilid rapi per periode waktu. Peneliti seperti Kak Bima dan pembaca senior seperti Pak Hendra sangat gemar menelusuri liputan peristiwa sejarah langsung dari berita zamannya!',
+        questTitle: 'Menelusuri Jejak Peristiwa Bangsa di Majalah Terjilid',
+        questDesc: 'Gunakan OPAC untuk mencari bundel majalah lama dan pahami nilai sejarah koleksi berkala terjilid.',
+        rewardXP: 70,
+        quiz: {
+          question: 'Apa keuntungan utama meneliti sejarah menggunakan koleksi Majalah dan Surat Kabar Terjilid di Lantai 23?',
+          options: [
+            'Memberikan rekaman berita, suasana zaman, dan sudut pandang sezaman saat peristiwa sejarah itu terjadi',
+            'Bisa digunting halamannya untuk dibawa pulang',
+            'Kertasnya boleh dicoret-coret untuk teka-teki silang',
+            'Tidak memerlukan pencarian katalog OPAC'
+          ],
+          correctIndex: 0,
+          explanation: 'Tepat sekali! Surat kabar dan majalah sezaman merupakan sumber primer berharga untuk merekonstruksi peristiwa sejarah secara autentik.'
+        }
+      },
+      {
+        floor: 24,
+        label: '24',
+        name: 'Layanan Koleksi Budaya Nusantara (34 Provinsi) & Balkon Pandang',
+        subtitle: 'Puncak petualangan literasi dengan panorama Monumen Nasional (Monas) dari ketinggian!',
+        icon: '👑',
+        zone: 'Puncak Budaya Nusantara & Panorama Monas',
+        requiresLocker: true,
+        requiresMember: true,
+        requiresOpac: false,
+        staminaCost: 5,
+        facilities: ['Koleksi Budaya Nusantara 34 Provinsi', 'Executive Lounge', 'Balkon Pandang Menghadap Monas', 'Galeri Kearifan Lokal'],
+        npcDialog: 'Selamat tiba di puncak Lantai 24 Perpustakaan Nasional RI! Di lantai tertinggi ini, kamu dapat mengagumi kekayaan literasi budaya Nusantara dari berbagai provinsi di Indonesia sekaligus menikmati pemandangan megah Monumen Nasional (Monas) dan langit Jakarta dari Balkon Pandang! Jawab Kuis Puncak untuk meraih gelar kehormatan "Duta Pemustaka Perpusnas"!',
+        questTitle: 'Quest Puncak: Kuis Kearifan Lokal & Penobatan Duta Pemustaka',
+        questDesc: 'Buktikan wawasan kebangsaan dan literasimu di puncak gedung Perpusnas untuk membuka lencana tertinggi!',
+        rewardXP: 120,
+        quiz: {
+          question: 'Apa makna filosofis dari desain gedung 24 lantai Perpusnas yang menjulang tinggi menghadap Monumen Nasional (Monas) serta memiliki koleksi Budaya Nusantara di Lantai 24?',
+          options: [
+            'Jendela ilmu pengetahuan yang terbuka luas dan menjunjung tinggi kearifan lokal Nusantara sebagai fondasi kemajuan bangsa',
+            'Sekadar gedung pencakar langit untuk pusat perbelanjaan modern',
+            'Menara pengawas lalu lintas kendaraan di Jakarta Pusat',
+            'Tempat penyimpanan barang dagangan impor'
+          ],
+          correctIndex: 0,
+          explanation: 'Luar biasa! Arsitektur Perpusnas terinspirasi dari jendela dunia dan kitab pengetahuan yang terbuka, memadukan kemajuan ilmu pengetahuan modern dengan akar budaya Nusantara.'
+        }
+      }
+    ];
+
+    /********************************************************************
+     * 3. STATE MANAGEMENT & LOCALSTORAGE
+     ********************************************************************/
+    const STORAGE_KEY = 'EXPLORE_PERPUSNAS_SAVE_V1';
+
+    let gameState = {
+      characterId: null,
+      currentFloor: 1,
+      stamina: 100,
+      maxStamina: 100,
+      score: 0,
+      inventory: {
+        lockerKey: false,
+        clearBag: false,
+        memberCard: false
+      },
+      completedFloors: [],
+      opacSearchedFloors: [],
+      badges: [],
+      logs: []
+    };
+
+    function loadGameState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          gameState = {
+            ...gameState,
+            ...parsed,
+            inventory: { ...gameState.inventory, ...(parsed.inventory || {}) },
+            completedFloors: Array.isArray(parsed.completedFloors) ? parsed.completedFloors : [],
+            opacSearchedFloors: Array.isArray(parsed.opacSearchedFloors) ? parsed.opacSearchedFloors : [],
+            badges: Array.isArray(parsed.badges) ? parsed.badges : [],
+            logs: Array.isArray(parsed.logs) ? parsed.logs : []
+          };
+          return true;
+        }
+      } catch (e) {
+        console.warn('Gagal memuat localStorage:', e);
+      }
+      return false;
+    }
+
+    function saveGameState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(gameState));
+      } catch (e) {
+        console.warn('Gagal menyimpan localStorage:', e);
+      }
+    }
+
+    function addLog(message) {
+      const timeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      gameState.logs.unshift(`[${timeStr}] ${message}`);
+      if (gameState.logs.length > 25) gameState.logs.pop();
+      saveGameState();
+      renderLogs();
+    }
+
+    function renderLogs() {
+      const logEl = document.getElementById('activityLog');
+      if (!logEl) return;
+      if (gameState.logs.length === 0) {
+        logEl.innerHTML = `<div class="text-slate-500 italic">Belum ada aktivitas tercatat.</div>`;
+        return;
+      }
+      logEl.innerHTML = gameState.logs
+        .map((item, idx) => `<div class="${idx === 0 ? 'text-sky-300 font-semibold' : 'text-slate-400'}">• ${item}</div>`)
+        .join('');
+    }
+
+    /********************************************************************
+     * 4. INITIALIZATION & CHARACTER SELECTION UI
+     ********************************************************************/
+    function initApp() {
+      const hasSaved = loadGameState();
+      renderCharacterCards();
+
+      if (hasSaved && gameState.characterId) {
+        document.getElementById('savedProgressNotice').classList.remove('hidden');
+        enterGameScreen();
+      } else {
+        showCharacterSelect();
+      }
+    }
+
+    function renderCharacterCards() {
+      const grid = document.getElementById('characterCardsGrid');
+      grid.innerHTML = CHARACTERS.map(char => {
+        const isCurrent = gameState.characterId === char.id;
+        return `
+          <div class="bg-slate-900/90 border ${isCurrent ? 'border-sky-400 ring-2 ring-sky-500/30' : 'border-slate-800 hover:border-slate-700'} rounded-2xl p-5 flex flex-col justify-between transition duration-200 shadow-lg">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br ${char.color} flex items-center justify-center text-3xl shadow-md">
+                  ${char.avatar}
+                </div>
+                <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+                  ${char.age}
+                </span>
+              </div>
+              <h3 class="text-lg font-extrabold text-white">${char.name}</h3>
+              <p class="text-xs font-semibold text-sky-400 mb-3">${char.role}</p>
+              <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                ${char.needs}
+              </p>
+              <div class="bg-slate-950/80 border border-slate-800/90 rounded-xl p-3 mb-4">
+                <div class="text-[10px] uppercase tracking-wider font-bold text-amber-400 mb-1">🎯 Fokus Lantai Utama:</div>
+                <div class="text-xs text-slate-200 font-medium">${char.floorRouteText}</div>
+              </div>
+            </div>
+            <button onclick="selectCharacter('${char.id}')" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r ${char.color} hover:opacity-95 text-white font-bold text-xs sm:text-sm shadow transition">
+              ${isCurrent ? '▶ Lanjutkan sebagai ' + char.name : 'Pilih ' + char.name}
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectCharacter(charId) {
+      const isChanging = gameState.characterId && gameState.characterId !== charId;
+      gameState.characterId = charId;
+      if (!gameState.currentFloor) gameState.currentFloor = 1;
+
+      const charObj = getSelectedCharacter();
+      if (isChanging) {
+        addLog(`Berganti peran Pemustaka menjadi ${charObj.name} (${charObj.role}).`);
+      } else if (gameState.logs.length === 0) {
+        addLog(`Memulai petualangan di Perpusnas sebagai ${charObj.name} (${charObj.role}).`);
+      }
+      saveGameState();
+      enterGameScreen();
+    }
+
+    function showCharacterSelect() {
+      document.getElementById('hudBar').classList.add('hidden');
+      document.getElementById('gameScreen').classList.add('hidden');
+      document.getElementById('startScreen').classList.remove('hidden');
+      renderCharacterCards();
+    }
+
+    function enterGameScreen() {
+      document.getElementById('startScreen').classList.add('hidden');
+      document.getElementById('hudBar').classList.remove('hidden');
+      document.getElementById('gameScreen').classList.remove('hidden');
+      updateAllUI();
+    }
+
+    function getSelectedCharacter() {
+      return CHARACTERS.find(c => c.id === gameState.characterId) || CHARACTERS[0];
+    }
+
+    function getFloorData(floorNum) {
+      return FLOORS_DATA.find(f => f.floor === floorNum) || FLOORS_DATA[0];
+    }
+
+    /********************************************************************
+     * 5. RENDER HUD, ELEVATOR PANEL & FLOOR SCENE
+     ********************************************************************/
+    function updateAllUI() {
+      checkAndUnlockBadges();
+      renderHUD();
+      renderElevatorPanel();
+      renderCurrentFloorScene();
+      renderLogs();
+      saveGameState();
+    }
+
+    function renderHUD() {
+      const char = getSelectedCharacter();
+      const floorObj = getFloorData(gameState.currentFloor);
+
+      document.getElementById('hudAvatar').textContent = char.avatar;
+      document.getElementById('hudCharName').textContent = `${char.name} (${char.age})`;
+      document.getElementById('hudRoleBadge').textContent = char.role;
+      document.getElementById('hudCurrentFloor').textContent = `Lantai ${floorObj.label}`;
+
+      // Main Quest Progress
+      const completedMainCount = char.mainFloors.filter(f => gameState.completedFloors.includes(f)).length;
+      document.getElementById('hudMainProgress').textContent = `${completedMainCount}/${char.mainFloors.length} Lantai Utama`;
+
+      // Stamina
+      const pct = Math.max(0, Math.min(100, Math.round((gameState.stamina / gameState.maxStamina) * 100)));
+      document.getElementById('hudStaminaText').textContent = `${gameState.stamina}/${gameState.maxStamina}`;
+      const bar = document.getElementById('hudStaminaBar');
+      bar.style.width = `${pct}%`;
+      bar.className = `h-full transition-all duration-300 ${
+        pct > 50 ? 'bg-gradient-to-r from-emerald-500 to-teal-400' :
+        pct > 25 ? 'bg-gradient-to-r from-amber-500 to-yellow-400' :
+                   'bg-gradient-to-r from-rose-600 to-red-400'
+      }`;
+
+      // Score
+      document.getElementById('hudScore').textContent = `${gameState.score} XP`;
+
+      // Inventory Items
+      setInventoryBadgeState('invLockerKey', gameState.inventory.lockerKey);
+      setInventoryBadgeState('invClearBag', gameState.inventory.clearBag);
+      setInventoryBadgeState('invMemberCard', gameState.inventory.memberCard);
+    }
+
+    function setInventoryBadgeState(elementId, isOwned) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      if (isOwned) {
+        el.className = 'px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold flex items-center gap-1';
+      } else {
+        el.className = 'px-2.5 py-1 rounded-lg bg-slate-800/80 text-slate-500 border border-slate-700/60 flex items-center gap-1 opacity-75';
+      }
+    }
+
+    function renderElevatorPanel() {
+      const char = getSelectedCharacter();
+      const grid = document.getElementById('elevatorButtonsGrid');
+      const currentFlObj = getFloorData(gameState.currentFloor);
+
+      document.getElementById('elevatorDigitalDisplay').textContent = `FL-${String(currentFlObj.label).padStart(2, '0')}`;
+      document.getElementById('roadmapCharLabel').textContent = char.name;
+
+      // Render floors from 24 down to 1 (in rows of 4)
+      const floorsDesc = [...FLOORS_DATA].sort((a, b) => b.floor - a.floor);
+
+      grid.innerHTML = floorsDesc.map(fl => {
+        const isCurrent = gameState.currentFloor === fl.floor;
+        const isCompleted = gameState.completedFloors.includes(fl.floor);
+        const isMainQuest = char.mainFloors.includes(fl.floor);
+        const isRestricted = !!fl.isRestrictedZone;
+
+        let btnStyle = 'bg-slate-800/90 hover:bg-slate-700 text-slate-200 border-slate-700';
+        if (isCurrent) {
+          btnStyle = 'bg-amber-400 text-slate-950 border-amber-300 font-extrabold ring-2 ring-amber-400/50';
+        } else if (isCompleted) {
+          btnStyle = 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border-emerald-500/40 font-bold';
+        } else if (isMainQuest) {
+          btnStyle = 'bg-sky-500/20 hover:bg-sky-500/30 text-sky-200 border-sky-400/50 font-bold quest-glow';
+        } else if (isRestricted) {
+          btnStyle = 'bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border-rose-500/30';
+        }
+
+        return `
+          <button
+            onclick="moveToFloor(${fl.floor})"
+            title="Lantai ${fl.label}: ${fl.name}"
+            class="relative py-2.5 px-2 rounded-xl border text-xs transition flex flex-col items-center justify-center ${btnStyle}">
+            <span class="text-sm font-extrabold">${fl.label}</span>
+            <span class="text-[9px] truncate max-w-full opacity-85">${isCompleted ? '✓ Selesai' : isMainQuest ? '★ Utama' : isRestricted ? '⚡ Zona' : 'Eksplor'}</span>
+          </button>
+        `;
+      }).join('');
+
+      // Render Roadmap Pills
+      const roadmapEl = document.getElementById('questRoadmapPills');
+      roadmapEl.innerHTML = char.mainFloors.map(fNum => {
+        const fObj = getFloorData(fNum);
+        const done = gameState.completedFloors.includes(fNum);
+        const active = gameState.currentFloor === fNum;
+        return `
+          <button onclick="moveToFloor(${fNum})" class="px-2 py-0.5 rounded-md border text-[11px] font-semibold transition ${
+            done ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300' :
+            active ? 'bg-amber-400 text-slate-950 border-amber-300 font-bold' :
+            'bg-slate-800 border-slate-700 text-slate-300 hover:border-sky-400'
+          }">
+            Lt.${fObj.label} ${done ? '✓' : ''}
+          </button>
+        `;
+      }).join('');
+    }
+
+    /********************************************************************
+     * 6. PROSEDUR LAYANAN PERPUSNAS (LOGIKA NAIK LIFT & AKSES LANTAI)
+     ********************************************************************/
+    function moveToFloor(targetFloor) {
+      if (targetFloor === gameState.currentFloor) return;
+
+      const targetData = getFloorData(targetFloor);
+
+      // SYARAT WAJIB LANTAI 1 (LOKER):
+      // Tidak bisa naik ke lantai > 1 sebelum menyelesaikan Quest Lantai 1 (Kunci Loker + Tas Transparan)
+      if (targetData.requiresLocker && (!gameState.inventory.lockerKey || !gameState.inventory.clearBag)) {
+        showModal(
+          '🔒 Prosedur Wajib Loker Lantai 1',
+          `
+            <div class="p-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-200 text-xs sm:text-sm">
+              <strong>Tanya Pustakawan mengingatkan:</strong><br/>
+              Maaf Sahabat Pemustaka, sesuai prosedur keamanan Perpustakaan Nasional RI, kamu belum bisa naik ke <strong>Lantai ${targetData.label}</strong> sebelum menitipkan tas ransel di <strong>Loker Lantai 1</strong> dan mengambil <strong>Tas Transparan + Kunci Loker</strong>.
+            </div>
+            <p class="text-xs text-slate-300">Selesaikan misi di <strong>Lantai 1</strong> terlebih dahulu ya!</p>
+          `
+        );
+        addLog(`Akses ke Lantai ${targetData.label} ditahan: Wajib titip tas di Loker Lantai 1 terlebih dahulu.`);
+        return;
+      }
+
+      // Cek Stamina (kecuali menuju Lantai 4 Kantin atau Lantai 6 Masjid untuk pemulihan)
+      const cost = targetData.staminaCost || 0;
+      if (cost > 0 && gameState.stamina < cost && targetFloor !== 4 && targetFloor !== 6) {
+        showModal(
+          '⚡ Stamina Hampir Habis!',
+          `
+            <p>Stamina kamu saat ini <strong>${gameState.stamina}/100</strong>. Kunjungi <strong>Lantai 4 (Kantin)</strong> atau <strong>Lantai 6 (Masjid)</strong> terlebih dahulu untuk beristirahat dan memulihkan Stamina!</p>
+          `
+        );
+        return;
+      }
+
+      // Kurangi atau Pulihkan Stamina saat berpindah lantai
+      if (cost > 0) {
+        gameState.stamina = Math.max(0, gameState.stamina - cost);
+      }
+
+      gameState.currentFloor = targetFloor;
+
+      // Trigger animasi transisi kartu lantai
+      const container = document.getElementById('floorCardContainer');
+      container.classList.remove('floor-transition');
+      void container.offsetWidth;
+      container.classList.add('floor-transition');
+
+      addLog(`Menggunakan lift menuju Lantai ${targetData.label} (${targetData.name}).`);
+      updateAllUI();
+    }
+
+    /********************************************************************
+     * 7. RENDER AREA VISUAL, DIALOG NPC & INTERAKTIF QUEST LANTAI
+     ********************************************************************/
+    function renderCurrentFloorScene() {
+      const char = getSelectedCharacter();
+      const fl = getFloorData(gameState.currentFloor);
+      const isCompleted = gameState.completedFloors.includes(fl.floor);
+      const isMainQuest = char.mainFloors.includes(fl.floor);
+      const isOpacDone = gameState.opacSearchedFloors.includes(fl.floor);
+
+      document.getElementById('floorIconBox').textContent = fl.icon;
+      document.getElementById('floorNumberBadge').textContent = `LANTAI ${fl.label}`;
+      document.getElementById('floorZoneBadge').textContent = fl.zone;
+
+      const questTypeBadge = document.getElementById('floorQuestTypeBadge');
+      if (isMainQuest) {
+        questTypeBadge.textContent = `🎯 Main Quest (${char.name})`;
+        questTypeBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-500/20 text-sky-300 border border-sky-500/40';
+      } else {
+        questTypeBadge.textContent = '🧭 Side Quest Eksplorasi';
+        questTypeBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700';
+      }
+
+      document.getElementById('floorTitle').textContent = fl.name;
+      document.getElementById('floorSubtitle').textContent = fl.subtitle;
+
+      const compBadge = document.getElementById('floorCompletionBadge');
+      if (isCompleted) {
+        compBadge.textContent = '✅ Quest Lantai Selesai';
+        compBadge.className = 'shrink-0 self-start sm:self-center px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold';
+      } else {
+        compBadge.textContent = '⏳ Belum Diselesaikan';
+        compBadge.className = 'shrink-0 self-start sm:self-center px-3 py-1.5 rounded-xl bg-amber-500/15 text-amber-300 border border-amber-500/30 text-xs font-bold';
+      }
+
+      document.getElementById('npcGreeting').textContent = `"${fl.npcDialog}"`;
+
+      document.getElementById('floorFacilitiesList').innerHTML = fl.facilities.map(fac => `
+        <span class="px-2.5 py-1 rounded-lg bg-slate-900 text-slate-300 border border-slate-800 text-xs">
+          ✨ ${fac}
+        </span>
+      `).join('');
+
+      // OPAC Requirement Banner on Collection Floors (12, 12A/13, 14–19, 21, 22, 23)
+      const opacBox = document.getElementById('opacRequirementBox');
+      const opacStatusText = document.getElementById('opacStatusText');
+      const btnFloorOpac = document.getElementById('btnFloorOpac');
+
+      if (fl.requiresOpac) {
+        opacBox.classList.remove('hidden');
+        if (isOpacDone && fl.opacSampleBook) {
+          opacStatusText.innerHTML = `✅ <strong>Nomor Panggil Ditemukan:</strong> <em>${fl.opacSampleBook.title}</em> — <code class="px-1.5 py-0.5 rounded bg-indigo-900 text-amber-300 font-mono">${fl.opacSampleBook.callNumber}</code>`;
+          btnFloorOpac.textContent = '✅ OPAC Sudah Dicari';
+          btnFloorOpac.className = 'shrink-0 px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs transition';
+        } else {
+          opacStatusText.innerHTML = `Wajib klik tombol <strong>Cari di OPAC / OneSearch</strong> terlebih dahulu untuk menemukan Nomor Panggil koleksi sebelum menyelesaikan quest Lantai ${fl.label}.`;
+          btnFloorOpac.textContent = '🔍 Cari di OPAC / OneSearch';
+          btnFloorOpac.className = 'shrink-0 px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs transition shadow quest-glow';
+        }
+      } else {
+        opacBox.classList.add('hidden');
+      }
+
+      // Quest Details
+      document.getElementById('questTitle').textContent = fl.questTitle;
+      document.getElementById('questRewardBadge').textContent = `+${fl.rewardXP} Poin Literasi${fl.staminaRestore ? ` & +${fl.staminaRestore} Stamina` : ''}`;
+      document.getElementById('questDescription').textContent = fl.questDesc;
+
+      // Render Interactive Quest Content
+      renderInteractiveQuestContent(fl, isCompleted);
+    }
+
+    function renderInteractiveQuestContent(fl, isCompleted) {
+      const container = document.getElementById('interactiveQuestArea');
+
+      // Check Membership Requirement first (Lantai 2)
+      if (fl.requiresMember && !gameState.inventory.memberCard) {
+        container.innerHTML = `
+          <div class="p-4 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-200 text-xs sm:text-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <strong>🪪 Syarat Wajib Kartu Anggota Perpusnas (Lantai 2)</strong>
+              <p class="mt-1 text-rose-300">Untuk mengakses fasilitas peneliti, meminjam koleksi, memakai komputer multimedia, atau membuka <em>e-Resources</em> di Lantai ${fl.label}, kamu harus membuat Kartu Anggota di <strong>Lantai 2</strong> terlebih dahulu!</p>
+            </div>
+            <button onclick="moveToFloor(2)" class="shrink-0 px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-bold text-xs transition">
+              🛗 Pergi ke Lantai 2
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      // Extra Stamina Restore Button on Floor 4 (Kantin) & Floor 6 (Masjid) & Floor 7 (Taman Outdoor)
+      let staminaBtnHtml = '';
+      if (fl.staminaRestore) {
+        staminaBtnHtml = `
+          <div class="mb-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3">
+            <span class="text-xs text-emerald-200">⚡ Pulihkan Stamina Pemustaka di fasilitas lantai ini (+${fl.staminaRestore} Stamina)</span>
+            <button onclick="restoreStaminaOnFloor(${fl.staminaRestore}, '${fl.name}')" class="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition">
+              ⚡ Istirahat / Pulihkan Stamina
+            </button>
+          </div>
+        `;
+      }
+
+      // Special DDC Mini-Game on Floors 21 and 22
+      if (fl.ddcGame) {
+        renderDdcMiniGame(container, fl, isCompleted, staminaBtnHtml);
+        return;
+      }
+
+      // Standard Quiz / Simulation Flow
+      if (fl.quiz) {
+        const optionsHtml = fl.quiz.options.map((opt, idx) => `
+          <button
+            onclick="submitFloorQuiz(${fl.floor}, ${idx})"
+            class="w-full text-left p-3.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700 hover:border-sky-400 transition text-xs sm:text-sm text-slate-200 flex items-start gap-3">
+            <span class="w-6 h-6 rounded-lg bg-slate-800 border border-slate-600 flex items-center justify-center font-bold text-xs text-sky-300 shrink-0">${String.fromCharCode(65 + idx)}</span>
+            <span>${opt}</span>
+          </button>
+        `).join('');
+
+        container.innerHTML = `
+          ${staminaBtnHtml}
+          <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-4 space-y-3">
+            <div class="text-xs sm:text-sm font-bold text-amber-300">❓ Kuis Interaktif Lantai ${fl.label}:</div>
+            <p class="text-sm text-white font-medium">${fl.quiz.question}</p>
+            <div class="space-y-2 pt-1">
+              ${optionsHtml}
+            </div>
+            <div id="quizFeedbackBox" class="hidden mt-3 p-3 rounded-xl text-xs sm:text-sm"></div>
+          </div>
+        `;
+      }
+    }
+
+    function renderDdcMiniGame(container, fl, isCompleted, staminaBtnHtml) {
+      const game = fl.ddcGame;
+      const selectOptions = game.classes.map(c => `<option value="${c.code}">${c.label}</option>`).join('');
+
+      const rowsHtml = game.items.map((item, idx) => `
+        <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <span class="text-xs sm:text-sm text-slate-200 font-medium">📘 ${item.book}</span>
+          <select id="ddcSelect_${fl.floor}_${idx}" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-sky-300 font-semibold focus:outline-none focus:border-sky-400">
+            <option value="">-- Pilih Kelas DDC --</option>
+            ${selectOptions}
+          </select>
+        </div>
+      `).join('');
+
+      let trolleyHtml = '';
+      if (game.trolleyQuestion) {
+        trolleyHtml = `
+          <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-2 mt-3">
+            <div class="text-xs font-bold text-amber-300">🛒 Etika Pengembalian Buku Koleksi Terbuka:</div>
+            <p class="text-xs text-slate-200">${game.trolleyQuestion}</p>
+            <select id="trolleySelect_${fl.floor}" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-amber-200 font-semibold">
+              <option value="">-- Pilih Tindakan Pemustaka yang Benar --</option>
+              <option value="correct">${game.trolleyCorrect}</option>
+              <option value="wrong">${game.trolleyWrong}</option>
+            </select>
+          </div>
+        `;
+      }
+
+      container.innerHTML = `
+        ${staminaBtnHtml}
+        <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-4 space-y-3">
+          <div class="text-xs sm:text-sm font-bold text-sky-300">🧩 Mini-Game Klasifikasi Desimal Dewey (DDC):</div>
+          <div class="space-y-2">
+            ${rowsHtml}
+          </div>
+          ${trolleyHtml}
+          <button onclick="verifyDdcMiniGame(${fl.floor})" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:opacity-95 text-white font-bold text-xs sm:text-sm shadow transition mt-2">
+            ✅ Periksa Jawaban Klasifikasi DDC
+          </button>
+          <div id="quizFeedbackBox" class="hidden mt-3 p-3 rounded-xl text-xs sm:text-sm"></div>
+        </div>
+      `;
+    }
+
+    /********************************************************************
+     * 8. AKSI OPAC, KUIS, MINI-GAME DDC & PENYELESAIAN QUEST
+     ********************************************************************/
+    function performOpacSearchForCurrentFloor() {
+      const fl = getFloorData(gameState.currentFloor);
+      if (!fl.requiresOpac) return;
+
+      if (!gameState.opacSearchedFloors.includes(fl.floor)) {
+        gameState.opacSearchedFloors.push(fl.floor);
+        gameState.score += 15;
+        addLog(`Mencari katalog di OPAC Lantai ${fl.label}: menemukan nomor panggil "${fl.opacSampleBook.callNumber}" (+15 XP).`);
+      }
+
+      showModal(
+        `🔍 Hasil Pencarian OPAC - Lantai ${fl.label}`,
+        `
+          <div class="p-4 rounded-xl bg-slate-950 border border-indigo-500/40 space-y-2 text-xs sm:text-sm">
+            <div class="text-indigo-300 font-bold">Cantuman Bibliografi Ditemukan:</div>
+            <div><span class="text-slate-400">Judul Koleksi:</span> <strong class="text-white">${fl.opacSampleBook.title}</strong></div>
+            <div><span class="text-slate-400">Nomor Panggil (Call Number):</span> <code class="px-2 py-0.5 rounded bg-indigo-950 text-amber-300 font-mono font-bold">${fl.opacSampleBook.callNumber}</code></div>
+            <div><span class="text-slate-400">Lokasi Layanan:</span> <span class="text-emerald-300">${fl.opacSampleBook.location}</span></div>
+            <div><span class="text-slate-400">Status Ketersediaan:</span> <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-semibold">Tersedia di Rak / Ruang Baca</span></div>
+          </div>
+          <p class="text-xs text-slate-300">Sekarang kamu sudah mengantongi Nomor Panggil buku dan dapat menyelesaikan misi/kuis di <strong>Lantai ${fl.label}</strong>!</p>
+        `
+      );
+
+      updateAllUI();
+    }
+
+    function submitFloorQuiz(floorNum, selectedIndex) {
+      const fl = getFloorData(floorNum);
+      const feedbackBox = document.getElementById('quizFeedbackBox');
+
+      // Cek syarat OPAC untuk lantai koleksi (12, 12A/13, 14-19, 21, 22, 23)
+      if (fl.requiresOpac && !gameState.opacSearchedFloors.includes(fl.floor)) {
+        feedbackBox.classList.remove('hidden');
+        feedbackBox.className = 'mt-3 p-3 rounded-xl text-xs sm:text-sm bg-amber-500/20 border border-amber-500/40 text-amber-200';
+        feedbackBox.innerHTML = `🔍 <strong>Prosedur OPAC Belum Dilakukan!</strong> Klik tombol <strong>"Cari di OPAC / OneSearch"</strong> di kotak ungu di atas terlebih dahulu untuk mendapatkan Nomor Panggil buku sebelum menjawab kuis lantai ini.`;
+        return;
+      }
+
+      if (selectedIndex === fl.quiz.correctIndex) {
+        feedbackBox.classList.remove('hidden');
+        feedbackBox.className = 'mt-3 p-3.5 rounded-xl text-xs sm:text-sm bg-emerald-500/20 border border-emerald-500/40 text-emerald-200';
+        feedbackBox.innerHTML = `🎉 <strong>Jawaban Tepat!</strong> ${fl.quiz.explanation}`;
+        completeFloorQuest(fl);
+      } else {
+        feedbackBox.classList.remove('hidden');
+        feedbackBox.className = 'mt-3 p-3.5 rounded-xl text-xs sm:text-sm bg-rose-500/20 border border-rose-500/40 text-rose-200';
+        feedbackBox.innerHTML = `❌ <strong>Kurang Tepat.</strong> Coba baca kembali penjelasan dari <em>Tanya Pustakawan</em> di atas dan pilih jawaban yang paling sesuai dengan prosedur Perpusnas!`;
+      }
+    }
+
+    function verifyDdcMiniGame(floorNum) {
+      const fl = getFloorData(floorNum);
+      const feedbackBox = document.getElementById('quizFeedbackBox');
+
+      if (fl.requiresOpac && !gameState.opacSearchedFloors.includes(fl.floor)) {
+        feedbackBox.classList.remove('hidden');
+        feedbackBox.className = 'mt-3 p-3 rounded-xl text-xs sm:text-sm bg-amber-500/20 border border-amber-500/40 text-amber-200';
+        feedbackBox.innerHTML = `🔍 <strong>Prosedur OPAC Wajib!</strong> Klik tombol <strong>"Cari di OPAC / OneSearch"</strong> di atas terlebih dahulu untuk menemukan nomor panggil koleksi di Lantai ${fl.label}.`;
+        return;
+      }
+
+      const items = fl.ddcGame.items;
+      for (let i = 0; i < items.length; i++) {
+        const sel = document.getElementById(`ddcSelect_${floorNum}_${i}`);
+        if (!sel || sel.value !== items[i].answer) {
+          feedbackBox.classList.remove('hidden');
+          feedbackBox.className = 'mt-3 p-3.5 rounded-xl text-xs sm:text-sm bg-rose-500/20 border border-rose-500/40 text-rose-200';
+          feedbackBox.innerHTML = `❌ Masih ada klasifikasi DDC yang belum tepat pada baris ke-${i + 1} (<strong>${items[i].book}</strong>). Yuk periksa kembali!`;
+          return;
+        }
+      }
+
+      if (fl.ddcGame.trolleyQuestion) {
+        const trolleySel = document.getElementById(`trolleySelect_${floorNum}`);
+        if (!trolleySel || trolleySel.value !== 'correct') {
+          feedbackBox.classList.remove('hidden');
+          feedbackBox.className = 'mt-3 p-3.5 rounded-xl text-xs sm:text-sm bg-rose-500/20 border border-rose-500/40 text-rose-200';
+          feedbackBox.innerHTML = `❌ <strong>Perhatian Etika Troli Buku:</strong> Buku yang selesai dibaca di lantai koleksi terbuka harus diletakkan di <strong>Troli Buku</strong>, bukan dikembalikan sendiri ke rak.`;
+          return;
+        }
+      }
+
+      feedbackBox.classList.remove('hidden');
+      feedbackBox.className = 'mt-3 p-3.5 rounded-xl text-xs sm:text-sm bg-emerald-500/20 border border-emerald-500/40 text-emerald-200';
+      feedbackBox.innerHTML = `🎉 <strong>Luar Biasa!</strong> Semua buku telah dicocokkan dengan nomor Klasifikasi Desimal Dewey (DDC) yang benar!`;
+      completeFloorQuest(fl);
+    }
+
+    function completeFloorQuest(fl) {
+      const alreadyDone = gameState.completedFloors.includes(fl.floor);
+
+      // Grant Special Items on Floor 1 & Floor 2
+      if (fl.floor === 1) {
+        gameState.inventory.lockerKey = true;
+        gameState.inventory.clearBag = true;
+      }
+      if (fl.floor === 2) {
+        gameState.inventory.memberCard = true;
+      }
+
+      if (!alreadyDone) {
+        gameState.completedFloors.push(fl.floor);
+        gameState.score += fl.rewardXP;
+        if (fl.staminaRestore) {
+          gameState.stamina = Math.min(gameState.maxStamina, gameState.stamina + fl.staminaRestore);
+        }
+        addLog(`Menyelesaikan Quest Lantai ${fl.label} (${fl.name}) dan meraih +${fl.rewardXP} XP!`);
+
+        if (fl.floor === 1) {
+          addLog(`Memperoleh 🔑 Kunci Loker & 🛍️ Tas Transparan! Akses lift ke lantai layanan terbuka.`);
+        } else if (fl.floor === 2) {
+          addLog(`Memperoleh 🪪 Kartu Anggota SAKTI Perpusnas! Akses penuh ke koleksi & e-Resources aktif.`);
+        } else if (fl.floor === 24) {
+          showVictoryCelebration();
+        }
+      }
+
+      updateAllUI();
+    }
+
+    function restoreStaminaOnFloor(amount, floorName) {
+      if (gameState.stamina >= gameState.maxStamina) {
+        showModal('⚡ Stamina Sudah Penuh!', `<p>Stamina kamu sudah penuh (100/100). Kamu siap melanjutkan penjelajahan ke lantai lainnya!</p>`);
+        return;
+      }
+      gameState.stamina = Math.min(gameState.maxStamina, gameState.stamina + amount);
+      addLog(`Beristirahat di ${floorName} dan memulihkan +${amount} Stamina.`);
+      updateAllUI();
+    }
+
+    /********************************************************************
+     * 9. SISTEM LENCANA (BADGES) & GELAR DUTA PEMUSTAKA
+     ********************************************************************/
+    const ALL_BADGES = [
+      {
+        id: 'tertib_loker',
+        title: 'Pemustaka Tertib Loker',
+        icon: '🛍️',
+        desc: 'Menitipkan tas di Loker Lantai 1 dan memakai Tas Transparan.',
+        check: () => gameState.inventory.lockerKey && gameState.inventory.clearBag
+      },
+      {
+        id: 'anggota_resmi',
+        title: 'Anggota Resmi SAKTI',
+        icon: '🪪',
+        desc: 'Memiliki Kartu Anggota Perpusnas di Lantai 2.',
+        check: () => gameState.inventory.memberCard
+      },
+      {
+        id: 'sahabat_opac',
+        title: 'Navigator Katalog OPAC',
+        icon: '🔍',
+        desc: 'Menemukan Nomor Panggil buku menggunakan OPAC di minimal 3 lantai koleksi.',
+        check: () => gameState.opacSearchedFloors.length >= 3
+      },
+      {
+        id: 'ahli_ddc',
+        title: 'Ahli Klasifikasi Dewey (DDC)',
+        icon: '📚',
+        desc: 'Menyelesaikan Mini-Game Klasifikasi DDC 000–499 (Lt. 21) & 500–999 (Lt. 22).',
+        check: () => gameState.completedFloors.includes(21) && gameState.completedFloors.includes(22)
+      },
+      {
+        id: 'penjaga_naskah',
+        title: 'Penjaga Khastara Nusantara',
+        icon: '📜',
+        desc: 'Menyelesaikan misi pelestarian naskah kuno di Lantai 9 & Buku Langka Lantai 14.',
+        check: () => gameState.completedFloors.includes(9) && gameState.completedFloors.includes(14)
+      },
+      {
+        id: 'main_quest_complete',
+        title: 'Tuntas Jalur Kebutuhan Utama',
+        icon: '🎯',
+        desc: 'Menyelesaikan seluruh lantai Main Quest karakter pilihanmu.',
+        check: () => {
+          const char = getSelectedCharacter();
+          return char.mainFloors.every(f => gameState.completedFloors.includes(f));
+        }
+      },
+      {
+        id: 'duta_pemustaka',
+        title: 'Duta Pemustaka Perpusnas',
+        icon: '👑',
+        desc: 'Menaklukkan Quest Puncak di Lantai 24 (Koleksi Budaya Nusantara & Balkon Monas).',
+        check: () => gameState.completedFloors.includes(24)
+      },
+      {
+        id: 'master_24_lantai',
+        title: 'Penjelajah Paripurna 24 Lantai',
+        icon: '🏛️',
+        desc: 'Menyelesaikan seluruh 24 lantai Perpustakaan Nasional RI!',
+        check: () => gameState.completedFloors.length >= 24
+      }
+    ];
+
+    function checkAndUnlockBadges() {
+      ALL_BADGES.forEach(b => {
+        if (!gameState.badges.includes(b.id) && b.check()) {
+          gameState.badges.push(b.id);
+          addLog(`🏅 Lencana Baru Terbuka: "${b.title}"!`);
+        }
+      });
+    }
+
+    function openBadgesModal() {
+      checkAndUnlockBadges();
+      const char = getSelectedCharacter();
+      const html = `
+        <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between mb-3">
+          <div>
+            <div class="text-xs text-slate-400">Karakter Aktif</div>
+            <div class="font-bold text-white">${char.name} — ${char.role}</div>
+          </div>
+          <div class="text-right">
+            <div class="text-xs text-slate-400">Total Lantai Selesai</div>
+            <div class="font-extrabold text-emerald-400">${gameState.completedFloors.length} / 24 Lantai</div>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          ${ALL_BADGES.map(b => {
+            const unlocked = gameState.badges.includes(b.id);
+            return `
+              <div class="p-3 rounded-xl border ${unlocked ? 'bg-amber-500/10 border-amber-500/40' : 'bg-slate-950/60 border-slate-800 opacity-60'} flex items-start gap-3">
+                <div class="text-2xl">${unlocked ? b.icon : '🔒'}</div>
+                <div>
+                  <div class="text-xs font-bold ${unlocked ? 'text-amber-300' : 'text-slate-400'}">${b.title}</div>
+                  <div class="text-[11px] text-slate-300 mt-0.5">${b.desc}</div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+      showModal('🏅 Koleksi Lencana & Gelar Literasi', html);
+    }
+
+    function showVictoryCelebration() {
+      const char = getSelectedCharacter();
+      showModal(
+        '👑 Selamat! Gelar Duta Pemustaka Perpusnas Diraih!',
+        `
+          <div class="text-center space-y-3 py-2">
+            <div class="text-5xl">🏆🏛️🌟</div>
+            <h4 class="text-lg font-extrabold text-amber-300">Penobatan di Balkon Pandang Lantai 24</h4>
+            <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">
+              Luar biasa, <strong>${char.name}</strong>! Dari ketinggian Lantai 24 yang menghadap langsung ke Monumen Nasional (Monas), kamu telah membuktikan penguasaan prosedur layanan Perpustakaan Nasional RI dan wawasan Budaya Nusantara!
+            </p>
+            <div class="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-200 text-xs">
+              Gelar Kehormatan: <strong>"Duta Pemustaka Perpusnas"</strong> resmi tercatat di lencanamu! Kamu tetap bisa menjelajahi lantai lainnya sebagai <em>Side Quest</em> hingga 24 lantai penuh.
+            </div>
+          </div>
+        `
+      );
+    }
+
+    /********************************************************************
+     * 10. SIMULASI APLIKASI DIGITAL PERPUSNAS (HUD BUTTONS)
+     ********************************************************************/
+    function launchDigitalApp(appKey) {
+      const fl = getFloorData(gameState.currentFloor);
+
+      if (appKey === 'opac') {
+        if (fl.requiresOpac) {
+          performOpacSearchForCurrentFloor();
+        } else {
+          showModal(
+            '🔍 OPAC (Online Public Access Catalog)',
+            `
+              <p><strong>OPAC Perpusnas (opac.perpusnas.go.id)</strong> adalah katalog daring untuk mencari lokasi rak, nomor panggil (call number), dan ketersediaan koleksi fisik di gedung Perpusnas.</p>
+              <div class="p-3 rounded-xl bg-sky-500/15 border border-sky-500/30 text-sky-200 text-xs">
+                💡 <strong>Tips Game:</strong> Saat kamu berada di lantai koleksi (Lantai 12, 12A, 14–19, 21, 22, atau 23), klik tombol OPAC ini untuk membuka Nomor Panggil buku syarat penyelesaian misi!
+              </div>
+            `
+          );
+        }
+        return;
+      }
+
+      if (appKey === 'onesearch') {
+        if (fl.requiresOpac) {
+          performOpacSearchForCurrentFloor();
+          return;
+        }
+        showModal(
+          '🌐 Indonesia OneSearch (IOS)',
+          `
+            <p><strong>Indonesia OneSearch (onesearch.id)</strong> merupakan pintu pencarian tunggal untuk seluruh katalog publik dari ribuan perpustakaan, museum, dan arsip di seluruh Indonesia yang dikelola di Data Center Lantai 6.</p>
+          `
+        );
+        return;
+      }
+
+      if (appKey === 'ipusnas') {
+        showModal(
+          '📲 Aplikasi iPusnas (Perpustakaan Digital Mobile)',
+          `
+            <p><strong>iPusnas</strong> adalah aplikasi perpustakaan digital berbasis media sosial milik Perpusnas RI. Pemustaka dapat meminjam dan membaca ribuan buku elektronik (e-book) secara gratis langsung dari gawai kapan saja dan di mana saja!</p>
+          `
+        );
+        return;
+      }
+
+      if (appKey === 'eresources') {
+        if (!gameState.inventory.memberCard) {
+          showModal(
+            '🎓 Portal e-Resources Perpusnas (Butuh Kartu Anggota)',
+            `<p class="text-rose-300">Kamu memerlukan <strong>Kartu Anggota Perpusnas (Lantai 2)</strong> untuk login ke portal <em>e-resources.perpusnas.go.id</em> dan mengakses jurnal internasional!</p>`
+          );
+          return;
+        }
+        showModal(
+          '🎓 Portal e-Resources Perpusnas (Aktif)',
+          `
+            <p>Kartu Anggota SAKTI kamu telah terhubung! Melalui <strong>e-resources.perpusnas.go.id</strong> (dan komputer di Lantai 19), kamu dapat mengunduh artikel jurnal internasional, e-book akademik, dan karya referensi dunia secara gratis dan legal.</p>
+          `
+        );
+        return;
+      }
+
+      if (appKey === 'khastara') {
+        showModal(
+          '📜 Portal Khastara (Khasanah Pustaka Nusantara)',
+          `
+            <p><strong>Khastara (khastara.perpusnas.go.id)</strong> menampilkan koleksi digital hasil alih media naskah kuno Nusantara (Lantai 9), buku langka (Lantai 14), peta kuno, dan lukisan (Lantai 16) sehingga masyarakat dapat mempelajarinya tanpa merusak fisik aslinya.</p>
+          `
+        );
+      }
+    }
+
+    function showModal(title, bodyHtml) {
+      document.getElementById('modalTitle').innerHTML = title;
+      document.getElementById('modalBody').innerHTML = bodyHtml;
+      document.getElementById('appModal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('appModal').classList.add('hidden');
+    }
+
+    function resetGameProgress() {
+      if (confirm('Apakah kamu yakin ingin menghapus seluruh progres permainan dan mengulang dari awal?')) {
+        localStorage.removeItem(STORAGE_KEY);
+        gameState = {
+          characterId: null,
+          currentFloor: 1,
+          stamina: 100,
+          maxStamina: 100,
+          score: 0,
+          inventory: { lockerKey: false, clearBag: false, memberCard: false },
+          completedFloors: [],
+          opacSearchedFloors: [],
+          badges: [],
+          logs: []
+        };
+        document.getElementById('savedProgressNotice').classList.add('hidden');
+        showCharacterSelect();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>
